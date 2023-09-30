@@ -1,0 +1,27 @@
+{
+  "name": "practice_ffi",
+  "version": "1.0.0",
+  "description": "**Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**",
+  "main": "print.js",
+  "directories": {
+    "lib": "lib",
+    "test": "test"
+  },
+  "scripts": {
+    "build": "npm run compile:circuits && npm run setup && npm run compile",
+    "compile": "forge build",
+    "compile:circuits": "mkdir -p build && circom circuits/withdraw.circom --r1cs --wasm -o build && circom circuits/deposit.circom --r1cs --wasm -o build",
+    "setup": "sh quickSetup.sh",
+    "info": "snarkjs info -r build/withdraw.r1cs && snarkjs info -r build/deposit.r1cs",
+    "test": "forge test -vvv --gas-report",
+    "format": "forge fmt",
+    "lint": "forge fmt check"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "circomlib": "^2.0.5",
+    "circomlibjs": "^0.1.7",
+    "ethers": "^5.5.4"
+  }
+}

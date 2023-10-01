@@ -140,36 +140,62 @@ abstract contract Zyclone is IZyclone, ReentrancyGuard {
      *   - optional fee that goes to the transaction sender (usually a relay)
      */
     function withdraw(
-        Proof calldata _proof,
+        Proof calldata,
         bytes32 _root,
         bytes32 _nullifierHash,
         address payable _recipient,
         address payable _relayer,
         uint256 _fee
     ) external nonReentrant {
-        require(_fee <= denomination, "Fee exceeds transfer value");
-        require(!nullifierHashes[_nullifierHash], "The note has been already spent");
+        IWithdrawVerifier _withdrawVerifier = withdrawVerifier;
+        uint256 _denomination = denomination;
+        bytes32 _nullifierHashesSlot;
+
+        assembly {
+            if gt(_fee, _denomination) { revert(0x00, 0x00) }
+
+            mstore(0x00, _nullifierHash)
+            mstore(0x20, nullifierHashes.slot)
+
+            _nullifierHashesSlot := keccak256(0x00, 0x40)
+
+            let nullifierHash_ := sload(_nullifierHashesSlot)
+
+            if eq(nullifierHash_, 0x01) {
+                mstore(0x80, hex"08c379a0")
+                mstore(0x84, 0x20)
+                mstore(0xa4, 0x1f)
+                mstore(0xc4, "The note has been already spent")
+                revert(0x80, 0x63)
+            }
+        }
+
         require(isKnownRoot(_root), "Cannot find your merkle root"); // Make sure to use a recent one
 
-        require(
-            withdrawVerifier.verifyProof(
-                _proof.a,
-                _proof.b,
-                _proof.c,
-                [
-                    uint256(_root),
-                    uint256(_nullifierHash),
-                    uint256(uint160(address(_recipient))),
-                    uint256(uint160(address(_relayer))),
-                    _fee
-                ]
-            ),
-            "Invalid withdraw proof"
-        );
+        assembly {
+            mstore(0x80, hex"34baeab9")
+            calldatacopy(0x84, 0x04, 0x1a0)
 
-        nullifierHashes[_nullifierHash] = true;
+            if iszero(call(gas(), _withdrawVerifier, 0x00, 0x80, 0x1a4, 0x00, 0x20)) { revert(0x00, 0x00) }
+
+            if iszero(mload(0x00)) {
+                mstore(0x80, 0x20)
+                mstore(0xa0, 0x16)
+                mstore(0xc0, "Invalid withdraw proof")
+                revert(0x80, 0x56)
+            }
+
+            sstore(_nullifierHashesSlot, 0x01)
+        }
+
         _processWithdraw(_recipient, _relayer, _fee);
-        emit Withdrawal(_recipient, _nullifierHash, _relayer, _fee);
+
+        assembly {
+            mstore(0x00, _recipient)
+            mstore(0x20, _nullifierHash)
+            mstore(0x40, _fee)
+            log2(0x00, 0x60, 0xe9e508bad6d4c3227e881ca19068f099da81b5164dd6d62b2eaf1e8bc6c34931, _relayer)
+        }
     }
 
     /**

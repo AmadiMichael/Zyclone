@@ -118,18 +118,17 @@
 
 #define macro INTERNAL_ROOTS() = takes(1) returns(1) {
     // Stack input:                     [index]
-    // Stack output:                    [root[index]]
+    // Stack output:                    [slot]
 
     [__ROOTS]                                                               // [roots.slot, index]
     add                                                                     // [roots[index].slot]
-    sload                                                                   // [root[index]]
 }
 
 
 
 #define macro INTERNAL_NULLIFIER_HASHES() = takes(1) returns(1) {
     // Stack input:                     [nullifierHash]
-    // Stack output:                    [isUsed]
+    // Stack output:                    [slot]
 
     0x00                                                                    // [0x00, nullifierHash]
     mstore                                                                  // []
@@ -140,15 +139,13 @@
     0x40                                                                    // [0x40]
     0x00                                                                    // [0x00, 0x40]
     sha3                                                                    // [slot]
-    
-    sload                                                                   // [isUsed]
 }
 
 
 
 #define macro INTERNAL_PENDING_COMMIT() = takes(1) returns(1) {
     // Stack input:                     [address]
-    // Stack output:                    [pendingCommitmentHash]
+    // Stack output:                    [slot]
 
     0x00                                                                    // [0x00, address]
     mstore                                                                  // []
@@ -159,6 +156,4 @@
     0x40                                                                    // [0x40]
     0x00                                                                    // [0x00, 0x40]
     sha3                                                                    // [slot]
-    
-    sload                                                                   // [pendingCommitmentHash]
 }

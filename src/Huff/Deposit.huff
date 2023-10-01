@@ -27,7 +27,153 @@
     // make function non payable
     NON_PAYABLE()
 
-    [__DEPOSIT_VERIFIER]
+    caller                                                                      // [msg.sender]
+    INTERNAL_PENDING_COMMIT()                                                   // [pendingCommitSlot]
+
+    dup1                                                                        // [pendingCommitSlot, pendingCommitSlot]
+    sload                                                                       // [_commitment, pendingCommitSlot]
+    dup1                                                                        // [_commitment, _commitment, pendingCommitSlot]
+    iszero                                                                      // [bool, _commitment, pendingCommitSlot]
+    commitmentErr                                                               // [commitmentErr, _commitment, pendingCommitSlot]
+    jumpi                                                                       // [_commitment, pendingCommitSlot]
+
+    INTERNAL_CURRENT_ROOT_INDEX()                                               // [_currentRootIndex, _commitment, pendingCommitSlot]
+
+    0x11479fea                                                                  // [verifyProofSig, _currentRootIndex, _commitment, pendingCommitSlot]
+    0x80                                                                        // [0x80, verifyProofSig, _currentRootIndex, _commitment, pendingCommitSlot]
+    mstore                                                                      // [_currentRootIndex, _commitment, pendingCommitSlot]
+
+    0x0100                                                                      // [0x0100, _currentRootIndex, _commitment, pendingCommitSlot]
+    0x04                                                                        // [0x04, 0x0100, _currentRootIndex, _commitment, pendingCommitSlot]
+    0x84                                                                        // [0x84, 0x04, 0x0100, _currentRootIndex, _commitment, pendingCommitSlot]
+    calldataload                                                                // [_currentRootIndex, _commitment, pendingCommitSlot]
+
+    dup1                                                                        // [_currentRootIndex, _currentRootIndex, _commitment, pendingCommitSlot]
+    INTERNAL_ROOTS()                                                            // [roots[_currentRootIndex].slot, _currentRootIndex, _commitment, pendingCommitSlot]
+    sload                                                                       // [roots[_currentRootIndex], _currentRootIndex, _commitment,pendingCommitSlot]
+    0x0184                                                                      // [0x0184, roots[_currentRootIndex], _currentRootIndex, _commitment, pendingCommitSlot]
+    mstore                                                                      // [_currentRootIndex, _commitment, pendingCommitSlot]
+
+    dup2                                                                        // [_commitment, _currentRootIndex, _commitment, pendingCommitSlot]
+    0x01a4                                                                      // [0x01a4, _commitment, _currentRootIndex, _commitment, pendingCommitSlot]
+    mstore                                                                      // [_currentRootIndex, _commitment, pendingCommitSlot]
+
+    0x0104                                                                      // [0x0104, _currentRootIndex, _commitment, pendingCommitSlot]
+    calldataload                                                                // [newRoot, _currentRootIndex, _commitment, pendingCommitSlot]
+    dup1                                                                        // [newRoot, newRoot, _currentRootIndex, _commitment, pendingCommitSlot]
+    0x01c4                                                                      // [0x01c4, newRoot, newRoot, _currentRootIndex, _commitment, pendingCommitSlot]
+    mstore                                                                      // [newRoot, _currentRootIndex, _commitment, pendingCommitSlot]
+
+    0x20                                                                        // [returndataSize, newRoot, _currentRootIndex, _commitment, pendingCommitSlot]
+    0x00                                                                        // [returndataOffset, returndataSize, newRoot, _currentRootIndex, _commitment, pendingCommitSlot]
+    0x0164                                                                      // [calldataSize, returndataOffset, returndataSize, newRoot, _currentRootIndex, _commitment, pendingCommitSlot]
+    0x80                                                                        // [calldataOffset, calldataSize, returndataOffset, returndataSize, newRoot, _currentRootIndex, _commitment, pendingCommitSlot]
+    0x00                                                                        // [value, calldataOffset, calldataSize, returndataOffset, returndataSize, newRoot, _currentRootIndex, _commitment, pendingCommitSlot]
+    [__DEPOSIT_VERIFIER]                                                        // [_depositVerifier, value, calldataOffset, calldataSize, returndataOffset, returndataSize, newRoot, _currentRootIndex, _commitment, pendingCommitSlot]
+    gas                                                                         // [gas, _depositVerifier, value, calldataOffset, calldataSize, returndataOffset, returndataSize, newRoot, _currentRootIndex, _commitment, pendingCommitSlot]
+    call                                                                        // [success, newRoot, _currentRootIndex, _commitment, pendingCommitSlot]
+    iszero                                                                      // [bool, newRoot, _currentRootIndex, _commitment, pendingCommitSlot]
+    callErr                                                                     // [callErr, newRoot, _currentRootIndex, _commitment, pendingCommitSlot]
+    jumpi                                                                       // [newRoot, _currentRootIndex, _commitment, pendingCommitSlot]
+
+    0x00                                                                        // [0x00, newRoot, _currentRootIndex, _commitment, pendingCommitSlot]
+    mload                                                                       // [callReturndata, newRoot, _currentRootIndex, _commitment, pendingCommitSlot]
+    iszero                                                                      // [bool, newRoot, _currentRootIndex, _commitment, pendingCommitSlot]
+    call2Err                                                                    // [call2Err, newRoot, _currentRootIndex, _commitment, pendingCommitSlot]
+    jumpi                                                                       // [newRoot, _currentRootIndex, _commitment, pendingCommitSlot]
+
+    // set pending commit to 0 bytes
+    swap3                                                                       // [pendingCommitSlot, _currentRootIndex, _commitment, newRoot]
+    0x00                                                                        // [0x00, pendingCommitSlot, _currentRootIndex, _commitment, newRoot]
+    swap1                                                                       // [pendingCommitSlot, 0x00, _currentRootIndex, _commitment, newRoot]
+    sstore                                                                      // [_currentRootIndex, _commitment, newRoot]
+
+    [__ROOT_HISTORY_SIZE]                                                       // [ROOT_HISTORY_SIZE, _currentRootIndex, _commitment, newRoot]
+    swap1                                                                       // [_currentRootIndex, ROOT_HISTORY_SIZE, _commitment, newRoot]
+    0x01                                                                        // [0x01, _currentRootIndex, ROOT_HISTORY_SIZE, _commitment, newRoot]
+    add                                                                         // [_currentRootIndex + 0x01, ROOT_HISTORY_SIZE, _commitment, newRoot]
+    mod                                                                         // [newCurrentRootIndex, _commitment, newRoot]
+
+    // update currentRootIndex
+    dup1                                                                        // [newCurrentRootIndex, newCurrentRootIndex, _commitment, newRoot]
+    [__CURRENT_ROOT_INDEX]                                                      // [currentRootIndexSlot, newCurrentRootIndex, newCurrentRootIndex, _commitment, newRoot]
+    sstore                                                                      // [newCurrentRootIndex, _commitment, newRoot]
+
+    // update root
+    INTERNAL_ROOTS()                                                            // [roots[newCurrentRootIndex], _commitment, newRoot]
+    swap1                                                                       // [_commitment, roots[newCurrentRootIndex], newRoot]
+    swap2                                                                       // [newRoot, roots[newCurrentRootIndex], _commitment]
+    swap1                                                                       // [roots[newCurrentRootIndex], newRoot, _commitment]
+    sstore                                                                      // [_commitment]
+
+    INTERNAL_NEXT_LEAF_INDEX()                                                  // [_nextIndex, _commitment]
+
+    // increment next index by 1
+    dup1                                                                        // [_nextIndex, _nextIndex, _commitment]
+    0x01                                                                        // [0x01, _nextIndex, _nextIndex, _commitment]
+    add                                                                         // [_newNextIndex, _nextIndex, _commitment]
+    [__NEXT_LEAF_INDEX]                                                         // [nextIndexSlot, _newNextIndex, _nextIndex, _commitment]
+    sstore                                                                      // [_nextIndex, _commitment]
+
+    0x00                                                                        // [0x00, _nextIndex, _commitment]
+    mstore                                                                      // [_commitment]
+
+    timestamp                                                                   // [block.timestamp, _commitment]
+    0x20                                                                        // [0x20, block.timestamp, _commitment]
+    mstore                                                                      // [_commitment]
+
+    __EVENT_HASH(Deposit)                                                       // [depositEventHash, _commitment]
+    0x40                                                                        // [0x40, depositEventHash, _commitment]
+    0x00                                                                        // [0x00, 0x40, depositEventHash, _commitment]
+    log2                                                                        // []
+
+    commitmentErr:
+        pop pop                                                                 // []
+        0x20                                                                    // [offset]
+        0x00                                                                    // [0x00, offset]
+        mstore                                                                  // []
+
+        0x0c                                                                    // [length]
+        0x20                                                                    // [0x20, length]
+        mstore                                                                  // []
+
+        0x6e6f7420636f6d6d697474656400000000000000000000000000000000000000      // ["not committed"]
+        0x40                                                                    // [0x40, "not committed"]
+        mstore                                                                  // []
+
+        0x60                                                                    // [size]
+        0x00                                                                    // [offset, size]
+        revert                                                                  // []
+
+
+    callErr:
+        pop pop                                                                 // [_commitment, pendingCommitSlot]
+        pop pop                                                                 // []
+        0x20                                                                    // [offset]
+        0x00                                                                    // [0x00, offset]
+        mstore                                                                  // []
+
+        0x15                                                                    // [length]
+        0x20                                                                    // [0x20, length]
+        mstore                                                                  // []
+
+        0x496e76616c6964206465706f7369742070726f6f660000000000000000000000      // ["Invalid deposit proof"]
+        0x40                                                                    // [0x40, "Invalid deposit proof"]
+        mstore                                                                  // []
+
+        0x60                                                                    // [size]
+        0x00                                                                    // [offset, size]
+        revert                                                                  // []
+
+
+    call2Err:
+        pop pop                                                                 // [_commitment, pendingCommitSlot]
+        pop pop                                                                 // []
+
+        0x00                                                                    // [size]
+        0x00                                                                    // [offset, size]
+        revert                                                                  // []
+
 }
 
 
@@ -67,14 +213,38 @@
 
     err1Jump:
         pop                                                                     // []
-        0x00                                                                    // [0x00]
-        0x00                                                                    // [0x00, 0x00]
+        0x20                                                                    // [offset]
+        0x00                                                                    // [0x00, offset]
+        mstore                                                                  // []
+
+        0x17                                                                    // [length]
+        0x20                                                                    // [0x20, length]
+        mstore                                                                  // []
+
+        0x50656e64696e6720636f6d6d69746d656e742068617368000000000000000000      // ["Pending commitment hash"]
+        0x40                                                                    // [0x40, "Pending commitment hash"]
+        mstore                                                                  // []
+
+        0x60                                                                    // [size]
+        0x00                                                                    // [offset, size]
         revert                                                                  // []
 
     err2Jump:
-        pop pop                                                                 // []
-        0x00                                                                    // [0x00]
-        0x00                                                                    // [0x00, 0x00]
+        pop                                                                     // []
+        0x20                                                                    // [offset]
+        0x00                                                                    // [0x00, offset]
+        mstore                                                                  // []
+
+        0x18                                                                    // [length]
+        0x20                                                                    // [0x20, length]
+        mstore                                                                  // []
+
+        0x5f636f6d6d69746d656e74206e6f7420696e206669656c640000000000000000      // ["_commitment not in field"]
+        0x40                                                                    // [0x40, "_commitment not in field"]
+        mstore                                                                  // []
+
+        0x60                                                                    // [size]
+        0x00                                                                    // [offset, size]
         revert                                                                  // []
 }
 

@@ -26,6 +26,8 @@
 #define macro DEPOSIT() = {
     // make function non payable
     NON_PAYABLE()
+
+    [__DEPOSIT_VERIFIER]
 }
 
 
@@ -38,7 +40,50 @@
  * 0x04 <-> 0x24: _commitment
  */
 #define macro COMMIT() = {
+    [__PENDING_COMMIT]                                                          // [pendingCommit]
+    caller                                                                      // [msg.sender, pendingCommit]
+    0x00                                                                        // [0x00, msg.sender, pendingCommit]
+    mstore                                                                      // [pendingCommit]
+    0x20                                                                        // [0x20, pendingCommit]
+    mstore                                                                      // []
 
+    0x20                                                                        // [size]
+    0x00                                                                        // [offSet, size]
+    sha3                                                                        // [pendingCommitSlot]
+
+    dup1                                                                        // [pendingCommitSlot, pendingCommitSlot]
+    sload                                                                       // [pendingCommit[msg.sender], pendingCommitSlot]
+    0x00                                                                        // [0x00, pendingCommit[msg.sender], pendingCommitSlot]
+    eq                                                                          // [bool, pendingCommitSlot]
+    iszero                                                                      // [iszero(bool), pendingCommitSlot]
+    err1Jump                                                                    // [err1Jump, pendingCommitSlot]
+    jumpi                                                                       // [pendingCommitSlot]
+
+    [__FIELD_SIZE]                                                              // [fieldSize, pendingCommitSlot]
+    0x04                                                                        // [0x04, fieldSize, pendingCommitSlot]
+    calldataload                                                                // [_commitment, fieldSize, pendingCommitSlot]
+    swap1                                                                       // [fieldSize, _commitment, pendingCommitSlot]
+    dup2                                                                        // [_commitment, fieldSize, _commitment, pendingCommitSlot]
+    gt                                                                          // [bool, _commitment, pendingCommitSlot]
+    err2Jump                                                                    // [err2Jump, _commitment, pendingCommitSlot]
+    jumpi                                                                       // [_commitment, pendingCommitSlot]
+
+    PROCESS_DEPOSIT()                                                           // [_commitment, pendingCommitSlot]
+    swap1                                                                       // [pendingCommitSlot, _commitment]
+    sstore                                                                      // []
+    stop
+
+    err1Jump:
+        pop                                                                     // []
+        0x00                                                                    // [0x00]
+        0x00                                                                    // [0x00, 0x00]
+        revert                                                                  // []
+
+    err2Jump:
+        pop pop                                                                 // []
+        0x00                                                                    // [0x00]
+        0x00                                                                    // [0x00, 0x00]
+        revert                                                                  // []
 }
 
 
@@ -52,4 +97,24 @@
 #define macro CLEAR() = {
     // make function non payable
     NON_PAYABLE()
+
+    [__PENDING_COMMIT]                                                          // [pendingCommit]
+    caller                                                                      // [msg.sender, pendingCommit]
+    0x00                                                                        // [0x00, msg.sender, pendingCommit]
+    mstore                                                                      // [pendingCommit]
+    0x20                                                                        // [0x20, pendingCommit]
+    mstore                                                                      // []
+
+    0x20                                                                        // [size]
+    0x00                                                                        // [offSet, size]
+    sha3                                                                        // [pendingCommitSlot]
+
+    0x00                                                                        // [0x00, pendingCommitSlot]
+    swap1                                                                       // [pendingCommitSlot, 0x00]
+    sstore                                                                      // []
+
+    0x00                                                                        // [fee]
+    0x00                                                                        // [relayer, fee]
+    caller                                                                      // [recipient, relayer, fee]
+    PROCESS_WITHDRAW()                                                          // []
 }

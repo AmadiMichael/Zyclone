@@ -12,7 +12,86 @@
  * @dev Loops through all 30 storage cached roots and continues execution as soon as 
  * any of these roots is equal to the value at the top of the stack.
  */
-#define macro IS_KNOWN_ROOT() = {
+#define macro IS_KNOWN_ROOT() = takes(1) returns(0) {
+    // Input stack:             [root]
+
+    dup1                                                                    // [root, root]
+    iszero                                                                  // [iszero(root), root]
+    revert_not_found                                                        // [revert_not_found, iszero(root), root]
+    jumpi                                                                   // [root]
+
+
+
+    [__CURRENT_ROOT_INDEX]                                                  // [currentRootIndex.slot, root]
+    sload                                                                   // [stop, root]
+    dup1                                                                    // [i, stop, root]
+
+
+    loop:
+        // check if (_root == roots[i])
+        dup3                                                                // [root, i, stop, root]
+        dup2                                                                // [i, root, i, stop, root]
+        INTERNAL_ROOTS()                                                    // [slot, root, i, stop, root]
+        sload                                                               // [root[i], root, i, stop, root]
+        eq                                                                  // [eq(root[i], root), i, stop, root]
+        is_known_root_continue                                              // [is_known_root_continue, eq(root[i], root), i, stop, root]
+        jumpi                                                               // [i, stop, root]
+
+
+        // if (i == 0) i = ROOT_HISTORY_SIZE;
+        dup1                                                                // [i, i, stop, root]
+        decrement_i                                                         // [decrement_i, i, i, stop, root]
+        jumpi                                                               // [i, stop, root]
+
+        // if i == 0, i = ROOT_HISTORY_SIZE
+        pop                                                                 // [stop, root]
+        [ROOT_HISTORY_SIZE]                                                 // [i, stop, root]
+
+        // i -= 1
+        decrement_i:                                                        // [i, stop, root]
+            0x01                                                            // [0x01, i, stop, root]
+            sub                                                             // [i, stop, root]
+
+        
+        // check condition while(i != currentRootIndex)
+        // if so jump to revert
+        dup2                                                                // [stop, i, stop, root]
+        dup2                                                                // [i, stop, i, stop, root]
+        eq                                                                  // [eq(i, stop), i, stop, root]
+        revert_not_found                                                    // [revert_not_found, eq(i, stop), i, stop, root]
+        jumpi                                                               // [i, stop, root]
+
+        // else continue loop
+        loop                                                                // [loop, i, stop, root]                                                               
+        jump                                                                // [i, stop, root]
+
+
+
+    // revert if not found
+    revert_not_found:
+        // revert with "Cannot find your merkle root"
+        0x20                                                                // [0x20]
+        0x00                                                                // [0x00, 0x20]
+        mstore                                                              // []
+
+        0x1c                                                                // [0x1c]
+        0x20                                                                // [0x20, 0x1c]
+        mstore                                                              // []
+
+        0x43616e6e6f742066696e6420796f7572206d65726b6c6520726f6f7400000000  // [0x43616e6e6f742066696e6420796f7572206d65726b6c6520726f6f7400000000]
+        0x40                                                                // [0x40, 0x43616e6e6f742066696e6420796f7572206d65726b6c6520726f6f7400000000]
+        mstore                                                              // []
+
+        0x60                                                                // [0x60]
+        0x00                                                                // [0x00, 0x60]
+        revert
+
+
+    // continue execution
+    is_known_root_continue:
+        pop                                                                 // [stop, root]
+        pop                                                                 // [root]
+        pop                                                                 // []
 
 }
 

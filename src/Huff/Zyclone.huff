@@ -1,0 +1,219 @@
+
+
+
+/// IMPORTS 
+#include "./Deposit.huff"
+#include "./Withdraw.huff"
+#include "./Utils.huff"
+#include "./Getters.huff"
+
+
+/// INTERFACE
+#define function clear() nonpayable returns()
+#define function commit(bytes32 _commitment) payable returns()
+// #define function deposit((uint256[2], uint256[2][2], uint256[2]) _proof, bytes32 newRoot) nonpayable returns() // 0x7ab698d6. Commented out as huff currently does not support struct definitions.
+// #define function withdraw((uint256[2], uint256[2][2], uint256[2]) _proof, bytes32 _root, bytes32 _nullifierHash, address payable _recipient, address payable _relayer, uint256 _fee) nonpayable returns() // 0xcff74ce1. Commented out as huff currently does not support struct definitions.
+#define function currentRootIndex() view returns (uint128)
+#define function nextIndex() view returns (uint128)
+#define function denomination() view returns (uint256)
+#define function roots(uint256 index) view returns (bytes32)
+#define function nullifierHash(uint256 index) view returns (bytes32)
+#define function pendingCommit(address addr) view returns (bytes32)
+
+
+
+/// EVENTS
+#define event Deposit(bytes32 indexed commitment, uint256 leafIndex, uint256 _timestamp)
+#define event Withdrawal(address to, bytes32 nullifierHash, address indexed relayer, uint256 fee)
+
+
+
+/// COMSTANTS
+#define constant __FIELD_SIZE = 0x30644e72e131a029b85045b68181585d2833e84879b9709143e1f593f0000001
+#define constant __ROOT_HISTORY_SIZE = 0x1e // 30
+#define constant __INITIAL_ZERO_ROOT = 0x2b0f6fc0179fa65b6f73627c0e1e84c7374d2eaec44c9a48f2571393ea77bcbb
+
+
+
+/// IMMUTABLES
+
+/// Will be updated per test as a code wrapper
+// #define constant __DENOMINATION = 0xde0b6b3a7640000 // 1 ether
+// #define constant __LEVELS = 0x14
+// #define constant __WITHDRAW_VERIFIER = 0x00
+// #define constant __DEPOSIT_VERIFIER = 0x00
+
+
+
+// STORAGE
+
+// VARIABLES
+#define constant __REENTERED = FREE_STORAGE_POINTER()
+#define constant __CURRENT_ROOT_INDEX = FREE_STORAGE_POINTER()
+#define constant __NEXT_LEAF_INDEX = FREE_STORAGE_POINTER()
+
+// ARRAY
+#define constant ROOTS_0 = FREE_STORAGE_POINTER()
+#define constant ROOTS_1 = FREE_STORAGE_POINTER()
+#define constant ROOTS_2 = FREE_STORAGE_POINTER()
+#define constant ROOTS_3 = FREE_STORAGE_POINTER()
+#define constant ROOTS_4 = FREE_STORAGE_POINTER()
+#define constant ROOTS_5 = FREE_STORAGE_POINTER()
+#define constant ROOTS_6 = FREE_STORAGE_POINTER()
+#define constant ROOTS_7 = FREE_STORAGE_POINTER()
+#define constant ROOTS_8 = FREE_STORAGE_POINTER()
+#define constant ROOTS_9 = FREE_STORAGE_POINTER()
+#define constant ROOTS_10 = FREE_STORAGE_POINTER()
+#define constant ROOTS_11 = FREE_STORAGE_POINTER()
+#define constant ROOTS_12 = FREE_STORAGE_POINTER()
+#define constant ROOTS_13 = FREE_STORAGE_POINTER()
+#define constant ROOTS_14 = FREE_STORAGE_POINTER()
+#define constant ROOTS_15 = FREE_STORAGE_POINTER()
+#define constant ROOTS_16 = FREE_STORAGE_POINTER()
+#define constant ROOTS_17 = FREE_STORAGE_POINTER()
+#define constant ROOTS_18 = FREE_STORAGE_POINTER()
+#define constant ROOTS_19 = FREE_STORAGE_POINTER()
+#define constant ROOTS_20 = FREE_STORAGE_POINTER()
+#define constant ROOTS_21 = FREE_STORAGE_POINTER()
+#define constant ROOTS_22 = FREE_STORAGE_POINTER()
+#define constant ROOTS_23 = FREE_STORAGE_POINTER()
+#define constant ROOTS_24 = FREE_STORAGE_POINTER()
+#define constant ROOTS_25 = FREE_STORAGE_POINTER()
+#define constant ROOTS_26 = FREE_STORAGE_POINTER()
+#define constant ROOTS_27 = FREE_STORAGE_POINTER()
+#define constant ROOTS_28 = FREE_STORAGE_POINTER()
+#define constant ROOTS_29 = FREE_STORAGE_POINTER()
+
+// MAPPINGS
+#define constant __NULLIFIER_HASHES = FREE_STORAGE_POINTER()
+#define constant __PENDING_COMMIT = FREE_STORAGE_POINTER()
+
+
+
+
+/// @dev Zyclone🌀 entry point
+#define macro ZYCLONE_MAIN() = takes(0) returns(0) {
+    // get function signature
+    0x00                                                                            // [0x00]
+    calldataload                                                                    // [first-32-bytes-of-calldata]
+    0xe0                                                                            // [0xe0, first-32-bytes-of-calldata]
+    shr                                                                             // [function-sig]
+
+    /// use linear search to determine the function to execute
+    
+    // check if withdraw function and jump there if so
+    dup1                                                                            // [function-sig, function-sig]
+    0xcff74ce1                                                                      // [withdraw_function_sig, function-sig, function-sig]
+    eq                                                                              // [eq(withdraw_function_sig, function-sig), function-sig]
+    withdraw_jumpdest                                                               // [withdraw_jumpdest, eq(withdraw_function_sig, function-sig), function-sig]
+    jumpi                                                                           // [function-sig]
+
+    // check if deposit function and jump there if so
+    dup1                                                                            // [function-sig, function-sig]
+    0x7ab698d6                                                                      // [deposit_function_sig, function-sig, function-sig]
+    eq                                                                              // [eq(deposit_function_sig, function-sig), function-sig]
+    deposit_jumpdest                                                                // [deposit_jumpdest, eq(deposit_function_sig, function-sig), function-sig]
+    jumpi                                                                           // [function-sig]
+
+    // check if commit function and jump there if so
+    dup1                                                                            // [function-sig, function-sig]
+    __FUNC_SIG(commit)                                                              // [commit_function_sig, function-sig, function-sig]
+    eq                                                                              // [eq(commit_function_sig, function-sig), function-sig]
+    commit_jumpdest                                                                 // [commit_jumpdest, eq(commit_function_sig, function-sig), function-sig]
+    jumpi                                                                           // [function-sig]
+
+    // check if clear function and jump there if so
+    dup1                                                                            // [function-sig, function-sig]
+    __FUNC_SIG(clear)                                                               // [clear_function_sig, function-sig, function-sig]
+    eq                                                                              // [eq(clear_function_sig, function-sig), function-sig]
+    clear_jumpdest                                                                  // [clear_jumpdest, eq(clear_function_sig, function-sig), function-sig]
+    jumpi                                                                           // [function-sig]
+
+
+
+    // getter functions
+    // check if denomination function and jump there if so
+    dup1                                                                            // [function-sig, function-sig]
+    __FUNC_SIG(denomination)                                                        // [denomination_function_sig, function-sig, function-sig]
+    eq                                                                              // [eq(denomination_function_sig, function-sig), function-sig]
+    denomination_jumpdest                                                           // [denomination_jumpdest, eq(denomination_function_sig, function-sig), function-sig]
+    jumpi                                                                           // [function-sig]
+
+
+    // check if current root index function and jump there if so
+    dup1                                                                            // [function-sig, function-sig]
+    __FUNC_SIG(currentRootIndex)                                                    // [currentRootIndex_function_sig, function-sig, function-sig]
+    eq                                                                              // [eq(currentRootIndex_function_sig, function-sig), function-sig]
+    currentRootIndex_jumpdest                                                       // [currentRootIndex_jumpdest, eq(currentRootIndex_function_sig, function-sig), function-sig]
+    jumpi          
+
+
+    // check if current root index function and jump there if so
+    dup1                                                                            // [function-sig, function-sig]
+    __FUNC_SIG(nextIndex)                                                           // [nextIndex_function_sig, function-sig, function-sig]
+    eq                                                                              // [eq(nextIndex_function_sig, function-sig), function-sig]
+    nextIndex_jumpdest                                                              // [nextIndex_jumpdest, eq(nextIndex_function_sig, function-sig), function-sig]
+    jumpi          
+
+
+    // check if roots function and jump there if so
+    dup1                                                                            // [function-sig, function-sig]
+    __FUNC_SIG(roots)                                                               // [roots_function_sig, function-sig, function-sig]
+    eq                                                                              // [eq(roots_function_sig, function-sig), function-sig]
+    roots_jumpdest                                                                  // [roots_jumpdest, eq(roots_function_sig, function-sig), function-sig]
+    jumpi          
+
+
+    // check if roots function and jump there if so
+    dup1                                                                            // [function-sig, function-sig]
+    __FUNC_SIG(nullifierHash)                                                       // [nullifierHash_function_sig, function-sig, function-sig]
+    eq                                                                              // [eq(nullifierHash_function_sig, function-sig), function-sig]
+    nullifierHash_jumpdest                                                          // [nullifierHash_jumpdest, eq(nullifierHash_function_sig, function-sig), function-sig]
+    jumpi          
+
+
+    // check if roots function and jump there if so
+    dup1                                                                            // [function-sig, function-sig]
+    __FUNC_SIG(pendingCommit)                                                       // [pendingCommit_function_sig, function-sig, function-sig]
+    eq                                                                              // [pendingCommit_function_sig, function-sig), function-sig]
+    pendingCommit_jumpdest                                                          // [pendingCommit_jumpdest, eq(pendingCommit_function_sig, function-sig), function-sig]
+    jumpi          
+
+
+    0x00 0x00 revert
+
+
+
+
+    withdraw_jumpdest:
+        WITHDRAW()
+
+    deposit_jumpdest:
+        DEPOSIT()
+
+    commit_jumpdest:
+        COMMIT()
+
+    clear_jumpdest:
+        CLEAR()
+
+
+
+    denomination_jumpdest:
+        DENOMINATION()
+
+    currentRootIndex_jumpdest:
+        CURRENT_ROOT_INDEX()
+
+    nextIndex_jumpdest:
+        NEXT_LEAF_INDEX()
+
+    roots_jumpdest:
+        ROOTS()
+
+    nullifierHash_jumpdest:
+        NULLIFIER_HASHES()
+
+    pendingCommit_jumpdest:
+        PENDING_COMMIT()
+}

@@ -1,0 +1,23 @@
+
+#include "./Zyclone.huff"
+
+
+
+#define macro CONSTRUCTOR() = takes(0) returns(0) {
+
+}
+
+
+#define macro MAIN() = takes(0) returns(0) {
+    ZYCLONE_MAIN()
+}
+
+
+
+#define macro PROCESS_DEPOSIT() = {
+
+}
+
+#define macro PROCESS_WITHDRAW() = {
+
+}

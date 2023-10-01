@@ -91,7 +91,7 @@ for (uint256 i = 0; i < levels; ++i) {
 
 ```
 
-# Zyclone
+# Zyclone 🌀
 
 - commitmentHash = poseidon(nullifier, 0)
 - "nullifierHash" = poseidon(nullifier, 1, leafIndex)

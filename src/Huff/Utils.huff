@@ -1,0 +1,34 @@
+
+/**
+ * Houses
+ * - isKnownRoot helper function
+ * - ReentrancyGuard modifier
+ * - TransferEth helper function
+ */
+
+
+
+/**
+ * @dev Loops through all 30 storage cached roots and continues execution as soon as 
+ * any of these roots is equal to the value at the top of the stack.
+ */
+#define macro IS_KNOWN_ROOT() = {
+
+}
+
+
+/**
+ * @dev nonReentrant modifier
+ *
+ */
+#define macro NON_REENTRANT() = {
+
+}
+
+
+/**
+ * @dev Transfers [DENOMINATION] ether to address at the top of the stack, reverting all execution if it fails
+ */
+#define macro TRANSFER_ETH() = {
+
+}

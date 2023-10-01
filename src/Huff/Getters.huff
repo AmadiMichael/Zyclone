@@ -1,0 +1,38 @@
+/**
+ * Houses
+ * - Getter functions of Zyclone
+ */
+
+
+
+#define macro DENOMINATION() = {
+
+}
+
+
+#define macro CURRENT_ROOT_INDEX() = {
+    
+}
+
+
+#define macro NEXT_LEAF_INDEX() = {
+    
+}
+
+
+
+#define macro ROOTS() = {
+    
+}
+
+
+
+#define macro NULLIFIER_HASHES() = {
+    
+}
+
+
+
+#define macro PENDING_COMMIT() = {
+    
+}

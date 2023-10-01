@@ -2,33 +2,10 @@
 
 pragma solidity ^0.8.13;
 
-import "./utils/ReentrancyGuard.sol";
+import {ReentrancyGuard} from "../Shared/ReentrancyGuard.sol";
+import {IZyclone, IWithdrawVerifier, IDepositVerifier, Proof} from "../Shared/Interfaces.sol";
 
-struct Proof {
-    uint256[2] a;
-    uint256[2][2] b;
-    uint256[2] c;
-}
-
-interface IWithdrawVerifier {
-    function verifyProof(
-        uint256[2] calldata a,
-        uint256[2][2] calldata b,
-        uint256[2] calldata c,
-        uint256[5] calldata input
-    ) external view returns (bool);
-}
-
-interface IDepositVerifier {
-    function verifyProof(
-        uint256[2] calldata a,
-        uint256[2][2] calldata b,
-        uint256[2] calldata c,
-        uint256[3] calldata input
-    ) external view returns (bool);
-}
-
-abstract contract Zyclone is ReentrancyGuard {
+abstract contract Zyclone is IZyclone, ReentrancyGuard {
     uint256 constant FIELD_SIZE = 21888242871839275222246405745257275088548364400416034343698204186575808495617;
     uint256 constant ROOT_HISTORY_SIZE = 30;
     bytes32 constant initialRootZero = 0x2b0f6fc0179fa65b6f73627c0e1e84c7374d2eaec44c9a48f2571393ea77bcbb;
@@ -91,7 +68,7 @@ abstract contract Zyclone is ReentrancyGuard {
     }
 
     /**
-     *
+     * @dev lets users add their committed commitmentHash to the current merkle root
      * @param _proof proof of correct of chain addition of pendingCommit[msg.sender] to the current merkle root
      * @param newRoot new root after adding pendingCommit[msg.sender] into current merkle root
      */
@@ -184,7 +161,7 @@ abstract contract Zyclone is ReentrancyGuard {
     /**
      * @dev Whether the root is present in the root history
      */
-    function isKnownRoot(bytes32 _root) public view returns (bool) {
+    function isKnownRoot(bytes32 _root) private view returns (bool) {
         if (_root == 0) return false;
 
         uint256 i = currentRootIndex;

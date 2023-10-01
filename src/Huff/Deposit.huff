@@ -1,0 +1,56 @@
+
+/**
+ * Houses
+ * - Deposit external function
+ * - Commit external function
+ * - Clear external function
+ */
+
+
+/**
+ * @dev lets users add their committed commitmentHash to the current merkle root
+ * 
+ * Calldata layout
+ * 
+ * 0x00 <-> 0x04: bytes4(keccak256("deposit((uint256[2],uint256[2][2],uint256[2]),bytes32)"))
+ * 0x04 <-> 0x24: _pA[0]
+ * 0x24 <-> 0x44: _pA[1]
+ * 0x44 <-> 0x64: _pB[0][0]
+ * 0x64 <-> 0x84: _pB[0][1]
+ * 0x84 <-> 0xa4: _pB[1][0]
+ * 0xa4 <-> 0xc4: _pB[1][1]
+ * 0xc4 <-> 0xe4: _pC[0]
+ * 0xe4 <-> 0x104: _pC[1]
+ * 0x104 <-> 0x124: newRoot
+ */
+#define macro DEPOSIT() = {
+    // make function non reentrant
+    NON_REENTRANT()
+}
+
+
+/**
+ * @dev lets users commit with 1 ether and a commitment hash which they can add into the tree whenever they want by calling deposit
+ *
+ * Calldata layout
+ * 
+ * 0x00 <-> 0x04: bytes4(keccak256("commit(bytes32)"))
+ * 0x04 <-> 0x24: _commitment
+ */
+#define macro COMMIT() = {
+    // make function non reentrant
+    NON_REENTRANT()
+}
+
+
+/**
+ * @dev Let users delete a previously committed commitment hash and withdraw 1 ether they deposited alongside it
+ *
+ * Calldata layout
+ * 
+ * 0x00 <-> 0x04: bytes4(keccak256("clear()"))
+ */
+#define macro CLEAR() = {
+    // make function non reentrant
+    NON_REENTRANT()
+}

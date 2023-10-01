@@ -44,25 +44,25 @@
     // Input stack:                 [to, amount]
     // Output stack:                []
 
-    0x00                                                                // [0x00, to, amount]
-    0x00                                                                // [0x00, 0x00, to, amount]
-    0x00                                                                // [0x00, 0x00, 0x00, to, amount]
-    0x00                                                                // [0x00, 0x00, 0x00, 0x00, to, amount]
-    swap5                                                               // [amount, 0x00, 0x00, 0x00, to, 0x00]
-    swap1                                                               // [0x00, amount, 0x00, 0x00, to, 0x00]
-    swap4                                                               // [to, amount, 0x00, 0x00, 0x00, 0x00]
-    gas                                                                 // [gas, to, amount, 0x00, 0x00, 0x00, 0x00]
-    call                                                                // [call_success]
-    transfer_eth_jumpdest                                               // [transfer_eth_jumpdest, call_success] 
-    jumpi                                                               // []
+    0x00                                                                    // [0x00, to, amount]
+    0x00                                                                    // [0x00, 0x00, to, amount]
+    0x00                                                                    // [0x00, 0x00, 0x00, to, amount]
+    0x00                                                                    // [0x00, 0x00, 0x00, 0x00, to, amount]
+    swap5                                                                   // [amount, 0x00, 0x00, 0x00, to, 0x00]
+    swap1                                                                   // [0x00, amount, 0x00, 0x00, to, 0x00]
+    swap4                                                                   // [to, amount, 0x00, 0x00, 0x00, 0x00]
+    gas                                                                     // [gas, to, amount, 0x00, 0x00, 0x00, 0x00]
+    call                                                                    // [call_success]
+    transfer_eth_jumpdest                                                   // [transfer_eth_jumpdest, call_success] 
+    jumpi                                                                   // []
 
     // `ETHTransferFailed()` error
-    0xb12d13eb                                                          // [ETHTransferFailed_error_sig]
-    0x00                                                                // [0x00, ETHTransferFailed_error_sig]
-    mstore                                                              // []
-    0x04                                                                // [0x04]
-    0x1c                                                                // [0x1c, 0x04]
-    revert                                                              // []
+    0xb12d13eb                                                              // [ETHTransferFailed_error_sig]
+    0x00                                                                    // [0x00, ETHTransferFailed_error_sig]
+    mstore                                                                  // []
+    0x04                                                                    // [0x04]
+    0x1c                                                                    // [0x1c, 0x04]
+    revert                                                                  // []
 
     transfer_eth_jumpdest:
 }
@@ -93,7 +93,7 @@
     // Stack input:                     []
     // Stack output:                    [denomination]
 
-    [__DENOMINATION]                                                // [denomination]
+    [__DENOMINATION]                                                        // [denomination]
 }
 
 
@@ -101,8 +101,8 @@
     // Stack input:                     []
     // Stack output:                    [currentRootIndex]
 
-    [__CURRENT_ROOT_INDEX]                                          // [currentRootIndex.slot]
-    sload                                                           // [currentRootIndex]
+    [__CURRENT_ROOT_INDEX]                                                  // [currentRootIndex.slot]
+    sload                                                                   // [currentRootIndex]
 }
 
 
@@ -110,55 +110,50 @@
     // Stack input:                     []
     // Stack output:                    [nextIndex]
 
-    [__NEXT_LEAF_INDEX]                                             // [nextIndex.slot]
-    sload                                                           // [nextIndex]
+    [__NEXT_LEAF_INDEX]                                                     // [nextIndex.slot]
+    sload                                                                   // [nextIndex]
 }
 
 
 
 #define macro INTERNAL_ROOTS() = takes(1) returns(1) {
     // Stack input:                     [index]
-    // Stack output:                    [root[index]]
+    // Stack output:                    [slot]
 
-    [__ROOTS]                                                       // [roots.slot, index]
-    add                                                             // [roots[index].slot]
-    sload                                                           // [root[index]]
+    [__ROOTS]                                                               // [roots.slot, index]
+    add                                                                     // [roots[index].slot]
 }
 
 
 
 #define macro INTERNAL_NULLIFIER_HASHES() = takes(1) returns(1) {
     // Stack input:                     [nullifierHash]
-    // Stack output:                    [isUsed]
+    // Stack output:                    [slot]
 
-    0x00                                                            // [0x00, nullifierHash]
-    mstore                                                          // []
-    [__NULLIFIER_HASHES]                                            // [nullifierHash.slot]
-    0x20                                                            // [0x20, nullifierHash.slot]
-    mstore                                                          // []
+    0x00                                                                    // [0x00, nullifierHash]
+    mstore                                                                  // []
+    [__NULLIFIER_HASHES]                                                    // [nullifierHash.slot]
+    0x20                                                                    // [0x20, nullifierHash.slot]
+    mstore                                                                  // []
 
-    0x40                                                            // [0x40]
-    0x00                                                            // [0x00, 0x40]
-    sha3                                                            // [slot]
-    
-    sload                                                           // [isUsed]
+    0x40                                                                    // [0x40]
+    0x00                                                                    // [0x00, 0x40]
+    sha3                                                                    // [slot]
 }
 
 
 
 #define macro INTERNAL_PENDING_COMMIT() = takes(1) returns(1) {
     // Stack input:                     [address]
-    // Stack output:                    [pendingCommitmentHash]
+    // Stack output:                    [slot]
 
-    0x00                                                            // [0x00, address]
-    mstore                                                          // []
-    [__PENDING_COMMIT]                                              // [pendingCommit.slot]
-    0x20                                                            // [0x20, pendingCommit.slot]
-    mstore                                                          // []
+    0x00                                                                    // [0x00, address]
+    mstore                                                                  // []
+    [__PENDING_COMMIT]                                                      // [pendingCommit.slot]
+    0x20                                                                    // [0x20, pendingCommit.slot]
+    mstore                                                                  // []
 
-    0x40                                                            // [0x40]
-    0x00                                                            // [0x00, 0x40]
-    sha3                                                            // [slot]
-    
-    sload                                                           // [pendingCommitmentHash]
+    0x40                                                                    // [0x40]
+    0x00                                                                    // [0x00, 0x40]
+    sha3                                                                    // [slot]
 }

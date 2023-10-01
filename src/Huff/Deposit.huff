@@ -24,8 +24,8 @@
  * 0x104 <-> 0x124: newRoot
  */
 #define macro DEPOSIT() = {
-    // make function non reentrant
-    NON_REENTRANT()
+    // make function non payable
+    NON_PAYABLE()
 }
 
 
@@ -38,8 +38,7 @@
  * 0x04 <-> 0x24: _commitment
  */
 #define macro COMMIT() = {
-    // make function non reentrant
-    NON_REENTRANT()
+
 }
 
 
@@ -51,6 +50,6 @@
  * 0x00 <-> 0x04: bytes4(keccak256("clear()"))
  */
 #define macro CLEAR() = {
-    // make function non reentrant
-    NON_REENTRANT()
+    // make function non payable
+    NON_PAYABLE()
 }

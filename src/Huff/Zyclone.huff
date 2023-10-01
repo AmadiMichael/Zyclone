@@ -48,7 +48,6 @@
 // STORAGE
 
 // VARIABLES
-#define constant __REENTERED = FREE_STORAGE_POINTER()
 #define constant __CURRENT_ROOT_INDEX = FREE_STORAGE_POINTER()
 #define constant __NEXT_LEAF_INDEX = FREE_STORAGE_POINTER()
 

@@ -41,9 +41,9 @@ interface IZyclone {
         uint256 _fee
     ) external;
 
-    function currentRootIndex() external view returns (uint128);
+    function currentRootIndex() external view returns (uint256);
 
-    function nextIndex() external view returns (uint128);
+    function nextIndex() external view returns (uint256);
 
     function roots(uint256) external view returns (bytes32);
 }

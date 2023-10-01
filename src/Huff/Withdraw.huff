@@ -29,6 +29,6 @@
  * 0x184 <-> 0x1a4: _fee
  */
 #define macro WITHDRAW() = {
-    // make function non reentrant
-    NON_REENTRANT()
+    // make function non payable
+    NON_PAYABLE()
 }

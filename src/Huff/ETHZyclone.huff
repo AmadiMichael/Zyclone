@@ -15,9 +15,47 @@
 
 
 #define macro PROCESS_DEPOSIT() = {
+    // revert if callvalue is not equal to denomination
+    callvalue                                                           // [callvalue]
+    [__DENOMINATION]                                                    // [denomination, callvalue]
+    eq                                                                  // [eq(denomination, callvalue)]
+    process_deposit_jumpdest                                            // [process_deposit_jumpdest, eq(denomination, callvalue)]
+    jumpi                                                               // []
 
+
+    0x00                                                                // [0x00]
+    0x00                                                                // [0x00, 0x00]
+    revert                                                              // []
+
+    process_deposit_jumpdest:
 }
 
 #define macro PROCESS_WITHDRAW() = {
+    // Input stack:                 [recipient, relayer, fee]
+    // Output stack:                []
 
+    // transfer
+    dup3                                                                // [fee, recipient, relayer, fee]
+    [__DENOMINATION]                                                    // [denomination, fee, recipient, relayer, fee]
+    sub                                                                 // [amount, recipient, relayer, fee]
+    swap1                                                               // [recipient, amount, relayer, fee]
+    TRANSFER_ETH()                                                      // [relayer, fee]
+
+
+    // if fee > 0 transfer
+    dup2                                                                // [fee, relayer, fee]
+    iszero                                                              // [iszero(fee), relayer, fee]
+    pop_off_top_2_stack                                                 // [pop_off_top_2_stack, iszero(fee), relayer, fee]
+    jumpi                                                               // [relayer, fee]
+
+    TRANSFER_ETH()                                                      // []
+    process_withdraw_continue                                           // [process_withdraw_continue]
+    jump                                                                // []
+
+
+    pop_off_top_2_stack:                                                // [relayer, fee]
+        pop                                                             // [fee]
+        pop                                                             // []
+
+    process_withdraw_continue:
 }

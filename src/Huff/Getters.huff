@@ -6,33 +6,45 @@
 
 
 #define macro DENOMINATION() = {
-
+    INTERNAL_DENOMINATION()                                                 // [denomination]
+    RETURN_32_BYTES()                                                       // []
 }
 
 
 #define macro CURRENT_ROOT_INDEX() = {
-    
+    INTERNAL_CURRENT_ROOT_INDEX()                                           // [currentRootIndex]
+    RETURN_32_BYTES()                                                       // []
 }
 
 
 #define macro NEXT_LEAF_INDEX() = {
-    
+    INTERNAL_CURRENT_ROOT_INDEX()                                           // [newLeafIndex]
+    RETURN_32_BYTES()                                                       // []
 }
 
 
 
 #define macro ROOTS() = {
-    
+    0x04                                                                    // [0x04]
+    calldataload                                                            // [index]
+    INTERNAL_ROOTS()                                                        // [roots[index]]
+    RETURN_32_BYTES()                                                       // []
 }
 
 
 
 #define macro NULLIFIER_HASHES() = {
-    
+    0x04                                                                    // [0x04]
+    calldataload                                                            // [nullifierHash]
+    INTERNAL_NULLIFIER_HASHES()                                             // [isUsed]
+    RETURN_32_BYTES()                                                       // []
 }
 
 
 
 #define macro PENDING_COMMIT() = {
-    
+    0x04                                                                    // [0x04]
+    calldataload                                                            // [address]
+    INTERNAL_PENDING_COMMIT()                                               // [pendingCommit]
+    RETURN_32_BYTES()                                                       // []
 }

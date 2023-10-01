@@ -15,8 +15,8 @@ abstract contract Zyclone is IZyclone, ReentrancyGuard {
     IWithdrawVerifier immutable withdrawVerifier;
     IDepositVerifier immutable depositVerifier;
 
-    uint128 public currentRootIndex;
-    uint128 public nextIndex;
+    uint256 public currentRootIndex;
+    uint256 public nextIndex;
 
     bytes32[ROOT_HISTORY_SIZE] public roots;
     mapping(bytes32 => bool) public nullifierHashes;
@@ -69,42 +69,61 @@ abstract contract Zyclone is IZyclone, ReentrancyGuard {
 
     /**
      * @dev lets users add their committed commitmentHash to the current merkle root
-     * @param _proof proof of correct of chain addition of pendingCommit[msg.sender] to the current merkle root
+     * _proof proof of correct of chain addition of pendingCommit[msg.sender] to the current merkle root
      * @param newRoot new root after adding pendingCommit[msg.sender] into current merkle root
      */
-    function deposit(Proof calldata _proof, bytes32 newRoot) external nonReentrant {
-        bytes32 _commitment = pendingCommit[msg.sender];
-        require(_commitment != bytes32(0), "not commited");
 
-        uint256 _currentRootIndex = currentRootIndex;
+    function deposit(Proof calldata, bytes32 newRoot) external nonReentrant {
+        IDepositVerifier _depositVerifier = depositVerifier;
+        assembly {
+            mstore(0x00, caller())
+            mstore(0x20, pendingCommit.slot)
 
-        require(
-            depositVerifier.verifyProof(
-                _proof.a,
-                _proof.b,
-                _proof.c,
-                [uint256(roots[_currentRootIndex]), uint256(_commitment), uint256(newRoot)]
-            ),
-            "Invalid deposit proof"
-        );
+            let pendingCommitSlot := keccak256(0x00, 0x40)
+            let _commitment := sload(pendingCommitSlot)
 
-        // set pending commit to 0 bytes
-        pendingCommit[msg.sender] = bytes32(0);
+            if iszero(_commitment) {
+                mstore(0x00, 0x20)
+                mstore(0x20, 0x0c)
+                mstore(0x00, "not commited")
+                revert(0x00, 0x60)
+            }
 
-        uint128 newCurrentRootIndex = uint128((_currentRootIndex + 1) % ROOT_HISTORY_SIZE);
+            let _currentRootIndex := sload(currentRootIndex.slot)
 
-        // update currentRootIndex
-        currentRootIndex = newCurrentRootIndex;
+            mstore(0x80, hex"11479fea")
 
-        // update root
-        roots[newCurrentRootIndex] = newRoot;
+            calldatacopy(0x84, 0x04, 0x100)
 
-        uint256 _nextIndex = nextIndex;
+            mstore(0x184, sload(add(roots.slot, _currentRootIndex)))
+            mstore(0x1a4, _commitment)
+            mstore(0x1c4, newRoot)
 
-        // update next index
-        nextIndex += 1;
+            if iszero(call(gas(), _depositVerifier, 0x00, 0x80, 0x164, 0x00, 0x20)) { revert(0x00, 0x00) }
 
-        emit Deposit(_commitment, _nextIndex, block.timestamp);
+            if iszero(mload(0x00)) { revert(0x00, 0x00) }
+
+            // set pending commit to 0 bytes
+            sstore(pendingCommitSlot, 0x00)
+
+            let newCurrentRootIndex := mod(add(_currentRootIndex, 0x01), ROOT_HISTORY_SIZE)
+
+            // update currentRootIndex
+            sstore(currentRootIndex.slot, newCurrentRootIndex)
+
+            // update root
+            sstore(add(roots.slot, newCurrentRootIndex), newRoot)
+
+            let _nextIndex := sload(nextIndex.slot)
+
+            // increment next index by 1
+            sstore(nextIndex.slot, add(_nextIndex, 0x01))
+
+            mstore(0x00, _nextIndex)
+            mstore(0x20, timestamp())
+
+            log2(0x00, 0x40, 0xe1f1096fd8bc7d572fb7ad7e4102736b6615500975c0252ea91ef1b765c49897, _commitment)
+        }
     }
 
     /**

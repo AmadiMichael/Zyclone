@@ -15,8 +15,8 @@ abstract contract Zyclone is IZyclone, ReentrancyGuard {
     IWithdrawVerifier immutable withdrawVerifier;
     IDepositVerifier immutable depositVerifier;
 
-    uint128 public currentRootIndex;
-    uint128 public nextIndex;
+    uint256 public currentRootIndex;
+    uint256 public nextIndex;
 
     bytes32[ROOT_HISTORY_SIZE] public roots;
     mapping(bytes32 => bool) public nullifierHashes;

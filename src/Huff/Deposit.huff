@@ -128,7 +128,6 @@
     log2                                                                        // []
 
     commitmentErr:
-        pop pop                                                                 // []
         0x20                                                                    // [offset]
         0x00                                                                    // [0x00, offset]
         mstore                                                                  // []
@@ -147,8 +146,6 @@
 
 
     callErr:
-        pop pop                                                                 // [_commitment, pendingCommitSlot]
-        pop pop                                                                 // []
         0x20                                                                    // [offset]
         0x00                                                                    // [0x00, offset]
         mstore                                                                  // []
@@ -167,9 +164,6 @@
 
 
     call2Err:
-        pop pop                                                                 // [_commitment, pendingCommitSlot]
-        pop pop                                                                 // []
-
         0x00                                                                    // [size]
         0x00                                                                    // [offset, size]
         revert                                                                  // []
@@ -211,7 +205,6 @@
     stop
 
     err1Jump:
-        pop                                                                     // []
         0x20                                                                    // [offset]
         0x00                                                                    // [0x00, offset]
         mstore                                                                  // []
@@ -229,7 +222,6 @@
         revert                                                                  // []
 
     err2Jump:
-        pop                                                                     // []
         0x20                                                                    // [offset]
         0x00                                                                    // [0x00, offset]
         mstore                                                                  // []

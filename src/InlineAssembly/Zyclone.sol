@@ -85,7 +85,7 @@ abstract contract Zyclone is IZyclone, ReentrancyGuard {
             if iszero(_commitment) {
                 mstore(0x00, 0x20)
                 mstore(0x20, 0x0c)
-                mstore(0x00, "not commited")
+                mstore(0x40, "not committed")
                 revert(0x00, 0x60)
             }
 

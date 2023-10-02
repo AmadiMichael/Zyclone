@@ -2,9 +2,10 @@
 #include "./Zyclone.huff"
 
 
-
 #define macro CONSTRUCTOR() = takes(0) returns(0) {
-
+    0x2b0f6fc0179fa65b6f73627c0e1e84c7374d2eaec44c9a48f2571393ea77bcbb
+    [__ROOTS]
+    sstore
 }
 
 

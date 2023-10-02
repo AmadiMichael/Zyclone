@@ -45,11 +45,12 @@
 
         // if i == 0, i = ROOT_HISTORY_SIZE
         pop                                                                 // [stop, root]
-        [ROOT_HISTORY_SIZE]                                                 // [i, stop, root]
+        [__ROOT_HISTORY_SIZE]                                               // [i, stop, root]
 
         // i -= 1
         decrement_i:                                                        // [i, stop, root]
             0x01                                                            // [0x01, i, stop, root]
+            swap1                                                           // [i, 0x01, stop, root]
             sub                                                             // [i, stop, root]
 
         
@@ -69,20 +70,24 @@
 
     // revert if not found
     revert_not_found:
+        0x08c379a000000000000000000000000000000000000000000000000000000000  // [bytes4(keccak256("Error(string)"))]
+        0x00                                                                // []
+        mstore                                                              // []
+
         // revert with "Cannot find your merkle root"
         0x20                                                                // [0x20]
-        0x00                                                                // [0x00, 0x20]
+        0x04                                                                // [0x00, 0x20]
         mstore                                                              // []
 
         0x1c                                                                // [0x1c]
-        0x20                                                                // [0x20, 0x1c]
+        0x24                                                                // [0x20, 0x1c]
         mstore                                                              // []
 
         0x43616e6e6f742066696e6420796f7572206d65726b6c6520726f6f7400000000  // [0x43616e6e6f742066696e6420796f7572206d65726b6c6520726f6f7400000000]
-        0x40                                                                // [0x40, 0x43616e6e6f742066696e6420796f7572206d65726b6c6520726f6f7400000000]
+        0x44                                                                // [0x40, 0x43616e6e6f742066696e6420796f7572206d65726b6c6520726f6f7400000000]
         mstore                                                              // []
 
-        0x60                                                                // [0x60]
+        0x64                                                                // [0x60]
         0x00                                                                // [0x00, 0x60]
         revert
 

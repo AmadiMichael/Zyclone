@@ -4,7 +4,7 @@ pragma solidity ^0.8.13;
 import {Vm, console2} from "forge-std/Test.sol";
 import {HuffDeployer} from "foundry-huff/HuffDeployer.sol";
 import {ETHZyclone} from "../../src/Solidity/ETHZyclone.sol";
-import {ZycloneTest} from "../Zyclone.t.sol";
+import {ZycloneTest, IZyclone} from "../Zyclone.t.sol";
 
 contract ZycloneHuffTest is ZycloneTest {
     function setUp() public override {
@@ -24,12 +24,6 @@ contract ZycloneHuffTest is ZycloneTest {
             vm.toString(bytes32(uint256(20)))
         );
 
-        console2.logString(wrapper);
-
-        console2.logBytes(HuffDeployer.config().with_code(wrapper).deploy("Huff/ETHZyclone").code);
-
-        zyclone = new ETHZyclone(depositVerifier, withdrawVerifier, 1e18, 20);
+        zyclone = IZyclone(HuffDeployer.config().with_code(wrapper).deploy("Huff/ETHZyclone"));
     }
-
-    function testDummy() external {}
 }

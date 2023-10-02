@@ -48,15 +48,15 @@
 // STORAGE
 
 // VARIABLES
-#define constant __CURRENT_ROOT_INDEX = FREE_STORAGE_POINTER()
-#define constant __NEXT_LEAF_INDEX = FREE_STORAGE_POINTER()
+#define constant __CURRENT_ROOT_INDEX = 0x00
+#define constant __NEXT_LEAF_INDEX = 0x01
 
 // ARRAY
-#define constant __ROOTS = FREE_STORAGE_POINTER()
+#define constant __ROOTS = 0x04
 
 // MAPPINGS
-#define constant __NULLIFIER_HASHES = FREE_STORAGE_POINTER()
-#define constant __PENDING_COMMIT = FREE_STORAGE_POINTER()
+#define constant __NULLIFIER_HASHES = 0x02
+#define constant __PENDING_COMMIT = 0x03
 
 
 
@@ -80,7 +80,7 @@
 
     // check if deposit function and jump there if so
     dup1                                                                            // [function-sig, function-sig]
-    0x7ab698d6                                                                      // [deposit_function_sig, function-sig, function-sig]
+    0xba9b9cdf                                                                      // [deposit_function_sig, function-sig, function-sig]
     eq                                                                              // [eq(deposit_function_sig, function-sig), function-sig]
     deposit_jumpdest                                                                // [deposit_jumpdest, eq(deposit_function_sig, function-sig), function-sig]
     jumpi                                                                           // [function-sig]

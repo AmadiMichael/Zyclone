@@ -27,6 +27,8 @@
     // make function non payable
     NON_PAYABLE()
 
+
+
     caller                                                                      // [msg.sender]
     INTERNAL_PENDING_COMMIT()                                                   // [pendingCommitSlot]
 
@@ -39,14 +41,14 @@
 
     INTERNAL_CURRENT_ROOT_INDEX()                                               // [_currentRootIndex, _commitment, pendingCommitSlot]
 
-    0x11479fea                                                                  // [verifyProofSig, _currentRootIndex, _commitment, pendingCommitSlot]
+    0x11479fea00000000000000000000000000000000000000000000000000000000          // [verifyProofSig, _currentRootIndex, _commitment, pendingCommitSlot]
     0x80                                                                        // [0x80, verifyProofSig, _currentRootIndex, _commitment, pendingCommitSlot]
     mstore                                                                      // [_currentRootIndex, _commitment, pendingCommitSlot]
 
     0x0100                                                                      // [0x0100, _currentRootIndex, _commitment, pendingCommitSlot]
     0x04                                                                        // [0x04, 0x0100, _currentRootIndex, _commitment, pendingCommitSlot]
     0x84                                                                        // [0x84, 0x04, 0x0100, _currentRootIndex, _commitment, pendingCommitSlot]
-    calldataload                                                                // [_currentRootIndex, _commitment, pendingCommitSlot]
+    calldatacopy                                                                // [_currentRootIndex, _commitment, pendingCommitSlot]
 
     dup1                                                                        // [_currentRootIndex, _currentRootIndex, _commitment, pendingCommitSlot]
     INTERNAL_ROOTS()                                                            // [roots[_currentRootIndex].slot, _currentRootIndex, _commitment, pendingCommitSlot]
@@ -126,6 +128,7 @@
     0x40                                                                        // [0x40, depositEventHash, _commitment]
     0x00                                                                        // [0x00, 0x40, depositEventHash, _commitment]
     log2                                                                        // []
+    stop
 
     commitmentErr:
         0x20                                                                    // [offset]

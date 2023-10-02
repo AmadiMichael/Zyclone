@@ -12,15 +12,13 @@
 
 
 #define macro CURRENT_ROOT_INDEX() = {
-    INTERNAL_CURRENT_ROOT_INDEX()                                           // [currentRootIndex.slot]
-    sload                                                                   // [currentRootIndex]
+    INTERNAL_CURRENT_ROOT_INDEX()                                           // [currentRootIndex]
     RETURN_32_BYTES()                                                       // []
 }
 
 
 #define macro NEXT_LEAF_INDEX() = {
-    INTERNAL_CURRENT_ROOT_INDEX()                                           // [newLeafIndex.slot]
-    sload                                                                   // [newLeafIndex]
+    INTERNAL_CURRENT_ROOT_INDEX()                                           // [newLeafIndex]
     RETURN_32_BYTES()                                                       // []
 }
 

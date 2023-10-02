@@ -45,8 +45,6 @@
     calldataload                                                                                         // [_nullifierHash]
     INTERNAL_NULLIFIER_HASHES()                                                                          // [nullifierHash_slot]
     sload                                                                                                // [isUsed]
-    0x01                                                                                                 // [1, isUsed]
-    eq                                                                                                   // [eq(1, isUsed)]
     revert_if_nullifierHash_has_been_used_jumpdest                                                       // [revert_jumpdest, eq(1, isUsed)]
     jumpi                                                                                                // []
 
@@ -56,7 +54,7 @@
     IS_KNOWN_ROOT()                                                                                      // [] // this will stop executiom if the `_root` is not known
 
     // call withdrawVerfier contract
-    0x34baeab9                                                                                           // [verifyProof_function_signature] // verifyProof_function_signature = bytes4(keccak256("verifyProof(uint256[2],uint256[2][2],uint256[2],uint256[5])"))
+    0x34baeab900000000000000000000000000000000000000000000000000000000                                   // [verifyProof_function_signature] // verifyProof_function_signature = bytes4(keccak256("verifyProof(uint256[2],uint256[2][2],uint256[2],uint256[5])"))
     0x80                                                                                                 // [0x80, verifyProof_function_signature]
     mstore                                                                                               // []
     0x1a0                                                                                                // [calldata_length_to_copy]
@@ -83,7 +81,9 @@
     jumpi                                                                                                // []
 
     // update nullifier hash
-    0x01                                                                                                 // [1]
+    0x01
+    0x124
+    calldataload                                                                                         
     INTERNAL_NULLIFIER_HASHES()                                                                          // [nullifierHash_slot, 1]
     sstore                                                                                               // []
 
@@ -114,6 +114,7 @@
     0x60
     0x00
     log2
+    stop
 
     revert_if_fee_is_greater_than_denomination_jumpdest:
         0x00                                                                                                 // [revert_sixe]
@@ -121,7 +122,7 @@
         revert                                                                                               // []
 
     revert_if_nullifierHash_has_been_used_jumpdest:
-        0x08c379a0                                                                                           // [bytes4(keccak256("Error(string)"))]
+        0x08c379a000000000000000000000000000000000000000000000000000000000                                   // [bytes4(keccak256("Error(string)"))]
         0x80                                                                                                 // [0x80, [bytes4(keccak256("Error(string)"))]]
         mstore                                                                                               // []
         0x20                                                                                                 // [revert_string_offset]
@@ -143,16 +144,19 @@
         revert                                                                                               // []
 
     revert_for_invalid_proof_jumpdest:
+        0x08c379a000000000000000000000000000000000000000000000000000000000                                   // [bytes4(keccak256("Error(string)"))]
+        0x80                                                                                                 // [0x80, [bytes4(keccak256("Error(string)"))]]
+        mstore                                                                                               // []
         0x20                                                                                                 // [revert_string_offset]
-        0x80                                                                                                 // [0x80, revert_string_offset]
+        0x84                                                                                                 // [0x80, revert_string_offset]
         mstore                                                                                               // []
         0x16                                                                                                 // [revert_string_length]
-        0xa0                                                                                                 // [0xa0, revert_string_length]
+        0xa4                                                                                                 // [0xa0, revert_string_length]
         mstore                                                                                               // []
         0x496e76616c69642077697468647261772070726f6f6600000000000000000000                                   // [revert_string]
-        0xc0                                                                                                 // [0xc0, revert_string]
+        0xc4                                                                                                 // [0xc0, revert_string]
         mstore                                                                                               // []
-        0x56                                                                                                 // [revert_size]
+        0x5a                                                                                                 // [revert_size]
         0x80                                                                                                 // [revert_offset]
         revert                                                                                               // []
 }

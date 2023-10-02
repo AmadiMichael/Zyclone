@@ -34,14 +34,6 @@ class JsStorage {
   }
 }
 
-// export interface Hasher {
-//     hash(left, right);
-// }
-
-// interface Handler {
-//     handle_index(i, current_index, sibling_index): void;
-// }
-
 class MerkleTree {
   zero_values;
   totalElements;

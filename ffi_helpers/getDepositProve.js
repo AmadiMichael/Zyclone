@@ -88,8 +88,6 @@ async function getDepositProve(
     pathIndices: path_index,
   };
 
-  //   console.log(witness);
-
   const solProof = await prove(witness);
 
   console.log(

@@ -37,16 +37,7 @@ async function prove(witness) {
   const wasmPath = path.join(__dirname, "../build/withdraw_js/withdraw.wasm");
   const zkeyPath = path.join(__dirname, "../build/withdraw_circuit_final.zkey");
 
-  // I get wasm error here.
   const { proof } = await groth16.fullProve(witness, wasmPath, zkeyPath);
-
-  //   const wc = require("../build/withdraw_js/witness_calculator");
-  //   const fs = require("fs");
-
-  //   const buffer = fs.readFileSync(wasmPath);
-  //   const witnessCalculator = await wc(buffer);
-  //   const witnessBuffer = await witnessCalculator.calculateWTNSBin(witness, 0);
-  //   const { proof, publicSignals } = await groth16.prove(zkeyPath, witnessBuffer);
 
   const solProof = {
     a: [proof.pi_a[0], proof.pi_a[1]],
@@ -96,8 +87,6 @@ async function getProve(
     pathElements: path_elements,
     pathIndices: path_index,
   };
-
-  //   console.log(witness);
 
   const solProof = await prove(witness);
 

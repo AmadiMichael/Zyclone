@@ -1,13 +1,8 @@
 const { MerkleTree } = require("./merkleTree.js");
 const { ethers } = require("ethers");
 
-const {
-  Contract,
-  ContractFactory,
-  BigNumber,
-  BigNumberish,
-} = require("ethers");
-const { poseidonContract, buildPoseidon } = require("circomlibjs");
+const { BigNumber } = require("ethers");
+const { buildPoseidon } = require("circomlibjs");
 
 function poseidonHash(poseidon, inputs) {
   const hash = poseidon(inputs.map((x) => BigNumber.from(x).toBigInt()));
@@ -39,7 +34,7 @@ async function tree(height, _pushedCommitments, newCommitment) {
 
   const pushedCommitments = ethers.utils.defaultAbiCoder.decode(
     ["bytes32[]"],
-    _pushedCommitments
+    _pushedCommitments,
   )[0];
 
   for (let i = 0; i < pushedCommitments.length; i++) {
@@ -56,8 +51,8 @@ async function tree(height, _pushedCommitments, newCommitment) {
   console.log(
     ethers.utils.defaultAbiCoder.encode(
       ["bytes32", "uint256", "bytes32"],
-      [before, elements, after]
-    )
+      [before, elements, after],
+    ),
   );
 }
 

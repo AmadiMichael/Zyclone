@@ -1,12 +1,7 @@
 const { MerkleTree } = require("./merkleTree.js");
 const { ethers } = require("ethers");
-const {
-  Contract,
-  ContractFactory,
-  BigNumber,
-  BigNumberish,
-} = require("ethers");
-const { poseidonContract, buildPoseidon } = require("circomlibjs");
+const { BigNumber } = require("ethers");
+const { buildPoseidon } = require("circomlibjs");
 const path = require("path");
 const { groth16 } = require("snarkjs");
 
@@ -58,7 +53,7 @@ async function getProve(
   recipient,
   relayer,
   fee,
-  _pushedCommitments
+  _pushedCommitments,
 ) {
   let poseidon = await buildPoseidon();
 
@@ -66,7 +61,7 @@ async function getProve(
 
   const pushedCommitments = ethers.utils.defaultAbiCoder.decode(
     ["bytes32[]"],
-    _pushedCommitments
+    _pushedCommitments,
   )[0];
 
   for (let i = 0; i < pushedCommitments.length; i++) {
@@ -113,8 +108,8 @@ async function getProve(
         solProof.c[0],
         solProof.c[1],
         root,
-      ]
-    )
+      ],
+    ),
   );
 
   // it doesn't return so use this to return
@@ -129,5 +124,5 @@ getProve(
   process.argv[6],
   process.argv[7],
   parseInt(process.argv[8]),
-  process.argv[9]
+  process.argv[9],
 );

@@ -1,11 +1,6 @@
 const { ethers } = require("ethers");
-const {
-  Contract,
-  ContractFactory,
-  BigNumber,
-  BigNumberish,
-} = require("ethers");
-const { poseidonContract, buildPoseidon } = require("circomlibjs");
+const { BigNumber } = require("ethers");
+const { buildPoseidon } = require("circomlibjs");
 
 function poseidonHash(poseidon, inputs) {
   const hash = poseidon(inputs.map((x) => BigNumber.from(x).toBigInt()));
@@ -46,8 +41,8 @@ async function getCommitment(leafIndex) {
         deposit.commitment,
         deposit.nullifierHash,
         ethers.utils.hexZeroPad(deposit.nullifier, 32),
-      ]
-    )
+      ],
+    ),
   );
 }
 

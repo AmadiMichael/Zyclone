@@ -30,5 +30,129 @@
  */
 #define macro WITHDRAW() = {
     // make function non payable
-    NON_PAYABLE()
+    NON_PAYABLE()                                                                                        // []
+
+    // revert if _fee is greater than denomination
+    INTERNAL_DENOMINATION()                                                                              // [denomination]
+    0x184                                                                                                // [0x184, denomination]
+    calldataload                                                                                         // [fee, denomination]
+    gt                                                                                                   // [gt(fee, denomination)]
+    revert_if_fee_is_greater_than_denomination_jumpdest                                                  // [revert_jumpdest, gt(fee, denomination)]
+    jumpi                                                                                                // []
+
+    // revert if _nullifierHash has been used
+    0x124                                                                                                // [0x124]
+    calldataload                                                                                         // [_nullifierHash]
+    INTERNAL_NULLIFIER_HASHES()                                                                          // [nullifierHash_slot]
+    sload                                                                                                // [isUsed]
+    0x01                                                                                                 // [1, isUsed]
+    eq                                                                                                   // [eq(1, isUsed)]
+    revert_if_nullifierHash_has_been_used_jumpdest                                                       // [revert_jumpdest, eq(1, isUsed)]
+    jumpi                                                                                                // []
+
+    // require(isKnownRoot(_root)
+    0x104                                                                                                // [0x104]
+    calldataload                                                                                         // [_root]
+    IS_KNOWN_ROOT()                                                                                      // [] // this will stop executiom if the `_root` is not known
+
+    // call withdrawVerfier contract
+    0x34baeab9                                                                                           // [verifyProof_function_signature] // verifyProof_function_signature = bytes4(keccak256("verifyProof(uint256[2],uint256[2][2],uint256[2],uint256[5])"))
+    0x80                                                                                                 // [0x80, verifyProof_function_signature]
+    mstore                                                                                               // []
+    0x1a0                                                                                                // [calldata_length_to_copy]
+    0x04                                                                                                 // [calldata_copy_start_offset, calldata_length_to_copy]
+    0x84                                                                                                 // [mem_offset, calldata_copy_start_offset, calldata_length_to_copy]
+    calldatacopy                                                                                         // []
+    0x20                                                                                                 // [return_size]
+    0x00                                                                                                 // [mem_return_offset, return_size]
+    0x1a4                                                                                                // [start_size, mem_return_offset, return_size]
+    0x80                                                                                                 // [mem_start_offset, start_size, mem_return_offset, return_size]
+    0x00                                                                                                 // [value, mem_start_offset, start_size, mem_return_offset, return_size]
+    [__WITHDRAW_VERIFIER]                                                                                // [address(withdrawVerifier), value, mem_start_offset, start_size, mem_return_offset, return_size]
+    gas                                                                                                  // [gas, address(withdrawVerifier), value, mem_start_offset, start_size, mem_return_offset, return_size]
+    call                                                                                                 // [success]
+    iszero                                                                                               // [iszero(success)]
+    revert_if_call_failed                                                                                // [revert_jumpdest, iszero(success)]
+    jumpi                                                                                                // []
+
+    // check return data
+    0x00                                                                                                 // [0x00]
+    mload                                                                                                // [is_valid_proof]
+    iszero                                                                                               // [iszero(is_valid_proof)]
+    revert_for_invalid_proof_jumpdest
+    jumpi                                                                                                // []
+
+    // update nullifier hash
+    0x01                                                                                                 // [1]
+    INTERNAL_NULLIFIER_HASHES()                                                                          // [nullifierHash_slot, 1]
+    sstore                                                                                               // []
+
+    // _processWithdraw(_recipient, _relayer, _fee);
+    0x144                                                                                                // [0x144]
+    calldataload                                                                                         // [_recipient]
+    0x184                                                                                                // [0x184, _recipient]
+    calldataload                                                                                         // [_fee, _recipient]
+    0x164                                                                                                // [0x164, _fee, _recipient]
+    calldataload                                                                                         // [_relayer, _fee, _recipient]
+    dup3                                                                                                 // [_recipient, _relayer, _fee, _recipient]
+    PROCESS_WITHDRAW()                                                                                   // [_recipient]
+    
+    // emit withdraw event
+    0x00                                                                                                 // [0x00, _recipient]
+    mstore                                                                                               // []
+    0x124                                                                                                // [0x124]
+    calldataload                                                                                         // [_nullifierHash]
+    0x20                                                                                                 // [0x20]
+    mstore                                                                                               // []
+    0x184                                                                                                // [0x184]
+    calldataload                                                                                         // [_fee]
+    0x40                                                                                                 // [0x40]
+    mstore                                                                                               // []
+    0x164                                                                                                // [0x164]
+    calldataload                                                                                         // [_relayer]
+    __EVENT_HASH(Withdrawal)
+    0x60
+    0x00
+    log2
+
+    revert_if_fee_is_greater_than_denomination_jumpdest:
+        0x00                                                                                                 // [revert_sixe]
+        0x00                                                                                                 // [revert_offset, revert_size]
+        revert                                                                                               // []
+
+    revert_if_nullifierHash_has_been_used_jumpdest:
+        0x08c379a0                                                                                           // [bytes4(keccak256("Error(string)"))]
+        0x80                                                                                                 // [0x80, [bytes4(keccak256("Error(string)"))]]
+        mstore                                                                                               // []
+        0x20                                                                                                 // [revert_string_offset]
+        0x84                                                                                                 // [0x84, revert_string_offset]
+        mstore                                                                                               // []
+        0x1f                                                                                                 // [revert_string_length]
+        0xa4                                                                                                 // [0xa4, revert_string_length]
+        mstore                                                                                               // []
+        0x546865206e6f746520686173206265656e20616c7265616479207370656e7400                                   // [revert_string]
+        0xc4                                                                                                 // [0xc4, revert_string]
+        mstore                                                                                               // []
+        0x63                                                                                                 // [revert_size]
+        0x80                                                                                                 // [revert_offset, revert_size]
+        revert                                                                                               // []
+
+    revert_if_call_failed:
+        0x00                                                                                                 // [revert_size]
+        0x00                                                                                                 // [revert_offset, revert_size]
+        revert                                                                                               // []
+
+    revert_for_invalid_proof_jumpdest:
+        0x20                                                                                                 // [revert_string_offset]
+        0x80                                                                                                 // [0x80, revert_string_offset]
+        mstore                                                                                               // []
+        0x16                                                                                                 // [revert_string_length]
+        0xa0                                                                                                 // [0xa0, revert_string_length]
+        mstore                                                                                               // []
+        0x496e76616c69642077697468647261772070726f6f6600000000000000000000                                   // [revert_string]
+        0xc0                                                                                                 // [0xc0, revert_string]
+        mstore                                                                                               // []
+        0x56                                                                                                 // [revert_size]
+        0x80                                                                                                 // [revert_offset]
+        revert                                                                                               // []
 }

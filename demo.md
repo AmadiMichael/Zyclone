@@ -3,7 +3,7 @@
 - commitmentHash = pederson(secret, nullifier)
 - nullifierHash = pederson(nullifier)
 
-e.g
+e.g of nullifier reuse restriction and loss of funds
 
 ### deposit into a
 
@@ -21,14 +21,14 @@ commitmentHash = pederson(10000, 11)
 
 nullifierHash = pederson(11) // Won't work
 
-// deposit
+## deposit
 
 - User A -> Deposit{value: 1 ether}(commitmentHash);
   - It adds commitmentHash to the merkle tree, onchain
     - keeps track of the pathElements, currentRoot onchain
     - to add your commitmentHash to the tree, it does MiMC hash on chain for each level
 
-// withdraw
+## withdraw
 
 ### Create a proof
 
@@ -96,7 +96,7 @@ for (uint256 i = 0; i < levels; ++i) {
 - commitmentHash = poseidon(nullifier, 0)
 - "nullifierHash" = poseidon(nullifier, 1, leafIndex)
 
-e.g
+e.g of nullifier reuse freewill
 
 ### deposit into a
 
@@ -145,22 +145,3 @@ topNodes = [abcd, efgh]
 pathElements = [b, cd, efgh]
 pathIndices = [0, 0, 0]
 ```
-
-Users = [a, b]
-
-user a deposit
-
-- use default vals of root to hash up to root
-
-user b deposit
-
-- use user a commithash and rest of default vals of root to hash up to root
-  - commit hash
-  - root
-  - path elements
-  - path indices
-
-deposit.circom
-
-- takes in a oldRoot, pathElements and pathIndices, newRoot and a commitment hash
-- adds commitment hash to oldRoot at index base10(pathIndices) using pathElement and pathIndices and asserts that == newRoot

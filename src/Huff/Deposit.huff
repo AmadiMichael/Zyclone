@@ -28,10 +28,9 @@
     NON_PAYABLE()
 
 
-
+    // get pendingCommit, if it is 0, revert
     caller                                                                      // [msg.sender]
     INTERNAL_PENDING_COMMIT()                                                   // [pendingCommitSlot]
-
     dup1                                                                        // [pendingCommitSlot, pendingCommitSlot]
     sload                                                                       // [_commitment, pendingCommitSlot]
     dup1                                                                        // [_commitment, _commitment, pendingCommitSlot]
@@ -39,33 +38,38 @@
     commitmentErr                                                               // [commitmentErr, _commitment, pendingCommitSlot]
     jumpi                                                                       // [_commitment, pendingCommitSlot]
 
+    // write function sig of deposit verify proof to memory
     INTERNAL_CURRENT_ROOT_INDEX()                                               // [_currentRootIndex, _commitment, pendingCommitSlot]
-
     0x11479fea00000000000000000000000000000000000000000000000000000000          // [verifyProofSig, _currentRootIndex, _commitment, pendingCommitSlot]
     0x80                                                                        // [0x80, verifyProofSig, _currentRootIndex, _commitment, pendingCommitSlot]
     mstore                                                                      // [_currentRootIndex, _commitment, pendingCommitSlot]
 
+    // copy proof data to memory
     0x0100                                                                      // [0x0100, _currentRootIndex, _commitment, pendingCommitSlot]
     0x04                                                                        // [0x04, 0x0100, _currentRootIndex, _commitment, pendingCommitSlot]
     0x84                                                                        // [0x84, 0x04, 0x0100, _currentRootIndex, _commitment, pendingCommitSlot]
     calldatacopy                                                                // [_currentRootIndex, _commitment, pendingCommitSlot]
 
+    // copy current root to memory
     dup1                                                                        // [_currentRootIndex, _currentRootIndex, _commitment, pendingCommitSlot]
     INTERNAL_ROOTS()                                                            // [roots[_currentRootIndex].slot, _currentRootIndex, _commitment, pendingCommitSlot]
     sload                                                                       // [roots[_currentRootIndex], _currentRootIndex, _commitment,pendingCommitSlot]
     0x0184                                                                      // [0x0184, roots[_currentRootIndex], _currentRootIndex, _commitment, pendingCommitSlot]
     mstore                                                                      // [_currentRootIndex, _commitment, pendingCommitSlot]
-
+    
+    // copy _commitment to memory
     dup2                                                                        // [_commitment, _currentRootIndex, _commitment, pendingCommitSlot]
     0x01a4                                                                      // [0x01a4, _commitment, _currentRootIndex, _commitment, pendingCommitSlot]
     mstore                                                                      // [_currentRootIndex, _commitment, pendingCommitSlot]
 
+    // copy newRoot to memory
     0x0104                                                                      // [0x0104, _currentRootIndex, _commitment, pendingCommitSlot]
     calldataload                                                                // [newRoot, _currentRootIndex, _commitment, pendingCommitSlot]
     dup1                                                                        // [newRoot, newRoot, _currentRootIndex, _commitment, pendingCommitSlot]
     0x01c4                                                                      // [0x01c4, newRoot, newRoot, _currentRootIndex, _commitment, pendingCommitSlot]
     mstore                                                                      // [newRoot, _currentRootIndex, _commitment, pendingCommitSlot]
 
+    // prepare and make call, revert if call failed
     0x20                                                                        // [returndataSize, newRoot, _currentRootIndex, _commitment, pendingCommitSlot]
     0x00                                                                        // [returndataOffset, returndataSize, newRoot, _currentRootIndex, _commitment, pendingCommitSlot]
     0x0164                                                                      // [calldataSize, returndataOffset, returndataSize, newRoot, _currentRootIndex, _commitment, pendingCommitSlot]
@@ -75,13 +79,14 @@
     gas                                                                         // [gas, _depositVerifier, value, calldataOffset, calldataSize, returndataOffset, returndataSize, newRoot, _currentRootIndex, _commitment, pendingCommitSlot]
     call                                                                        // [success, newRoot, _currentRootIndex, _commitment, pendingCommitSlot]
     iszero                                                                      // [bool, newRoot, _currentRootIndex, _commitment, pendingCommitSlot]
-    callErr                                                                     // [callErr, newRoot, _currentRootIndex, _commitment, pendingCommitSlot]
+    call_err                                                                    // [call_err, newRoot, _currentRootIndex, _commitment, pendingCommitSlot]
     jumpi                                                                       // [newRoot, _currentRootIndex, _commitment, pendingCommitSlot]
 
+    // if precompile returns false revert
     0x00                                                                        // [0x00, newRoot, _currentRootIndex, _commitment, pendingCommitSlot]
     mload                                                                       // [callReturndata, newRoot, _currentRootIndex, _commitment, pendingCommitSlot]
     iszero                                                                      // [bool, newRoot, _currentRootIndex, _commitment, pendingCommitSlot]
-    call2Err                                                                    // [call2Err, newRoot, _currentRootIndex, _commitment, pendingCommitSlot]
+    inavlid_proof_err                                                           // [inavlid_proof_err, newRoot, _currentRootIndex, _commitment, pendingCommitSlot]
     jumpi                                                                       // [newRoot, _currentRootIndex, _commitment, pendingCommitSlot]
 
     // set pending commit to 0 bytes
@@ -131,43 +136,50 @@
     stop
 
     commitmentErr:
-        0x20                                                                    // [offset]
-        0x00                                                                    // [0x00, offset]
+        0x08c379a000000000000000000000000000000000000000000000000000000000      // [bytes4(keccak256("Error(string)"))]
+        0x00                                                                    // [0x00, [bytes4(keccak256("Error(string)"))]]
         mstore                                                                  // []
 
-        0x0c                                                                    // [length]
-        0x20                                                                    // [0x20, length]
+        0x20                                                                    // [offset]
+        0x04                                                                    // [0x04, offset]
+        mstore                                                                  // []
+
+        0x0d                                                                    // [length]
+        0x24                                                                    // [0x24, length]
         mstore                                                                  // []
 
         0x6e6f7420636f6d6d697474656400000000000000000000000000000000000000      // ["not committed"]
-        0x40                                                                    // [0x40, "not committed"]
+        0x44                                                                    // [0x44, "not committed"]
         mstore                                                                  // []
 
-        0x60                                                                    // [size]
+        0x64                                                                    // [size]
         0x00                                                                    // [offset, size]
         revert                                                                  // []
 
 
-    callErr:
+    call_err:
+        0x00                                                                    // [size]
+        0x00                                                                    // [offset, size]
+        revert                                                                  // []
+
+    inavlid_proof_err:
+        0x08c379a000000000000000000000000000000000000000000000000000000000      // [bytes4(keccak256("Error(string)"))]
+        0x00                                                                    // [0x00, [bytes4(keccak256("Error(string)"))]]
+        mstore                                                                  // []
+
         0x20                                                                    // [offset]
-        0x00                                                                    // [0x00, offset]
+        0x04                                                                    // [0x04, offset]
         mstore                                                                  // []
 
         0x15                                                                    // [length]
-        0x20                                                                    // [0x20, length]
+        0x24                                                                    // [0x24, length]
         mstore                                                                  // []
 
         0x496e76616c6964206465706f7369742070726f6f660000000000000000000000      // ["Invalid deposit proof"]
-        0x40                                                                    // [0x40, "Invalid deposit proof"]
+        0x44                                                                    // [0x44, "Invalid deposit proof"]
         mstore                                                                  // []
 
-        0x60                                                                    // [size]
-        0x00                                                                    // [offset, size]
-        revert                                                                  // []
-
-
-    call2Err:
-        0x00                                                                    // [size]
+        0x64                                                                    // [size]
         0x00                                                                    // [offset, size]
         revert                                                                  // []
 }
@@ -182,9 +194,9 @@
  * 0x04 <-> 0x24: _commitment
  */
 #define macro COMMIT() = {
+    // get pendingCommit, if it's not zero, revert
     caller                                                                      // [msg.sender]
     INTERNAL_PENDING_COMMIT()                                                   // [pendingCommitSlot]
-
     dup1                                                                        // [pendingCommitSlot, pendingCommitSlot]
     sload                                                                       // [pendingCommit[msg.sender], pendingCommitSlot]
     0x00                                                                        // [0x00, pendingCommit[msg.sender], pendingCommitSlot]
@@ -193,6 +205,7 @@
     err1Jump                                                                    // [err1Jump, pendingCommitSlot]
     jumpi                                                                       // [pendingCommitSlot]
 
+    // revert if commitment hash is not within field size
     [__FIELD_SIZE]                                                              // [fieldSize, pendingCommitSlot]
     0x04                                                                        // [0x04, fieldSize, pendingCommitSlot]
     calldataload                                                                // [_commitment, fieldSize, pendingCommitSlot]
@@ -202,42 +215,53 @@
     err2Jump                                                                    // [err2Jump, _commitment, pendingCommitSlot]
     jumpi                                                                       // [_commitment, pendingCommitSlot]
 
+    // process deposit 
     PROCESS_DEPOSIT()                                                           // [_commitment, pendingCommitSlot]
+
+    // update pendingCommit and end execution
     swap1                                                                       // [pendingCommitSlot, _commitment]
     sstore                                                                      // []
     stop
 
     err1Jump:
+        0x08c379a000000000000000000000000000000000000000000000000000000000      // [bytes4(keccak256("Error(string)"))]
+        0x00                                                                    // [0x00, [bytes4(keccak256("Error(string)"))]]
+        mstore                                                                  // []
+
         0x20                                                                    // [offset]
-        0x00                                                                    // [0x00, offset]
+        0x04                                                                    // [0x04, offset]
         mstore                                                                  // []
 
         0x17                                                                    // [length]
-        0x20                                                                    // [0x20, length]
+        0x24                                                                    // [0x24, length]
         mstore                                                                  // []
 
         0x50656e64696e6720636f6d6d69746d656e742068617368000000000000000000      // ["Pending commitment hash"]
-        0x40                                                                    // [0x40, "Pending commitment hash"]
+        0x44                                                                    // [0x44, "Pending commitment hash"]
         mstore                                                                  // []
 
-        0x60                                                                    // [size]
+        0x64                                                                    // [size]
         0x00                                                                    // [offset, size]
         revert                                                                  // []
 
     err2Jump:
+        0x08c379a000000000000000000000000000000000000000000000000000000000      // [bytes4(keccak256("Error(string)"))]
+        0x00                                                                    // [0x00, [bytes4(keccak256("Error(string)"))]]
+        mstore                                                                  // []
+
         0x20                                                                    // [offset]
-        0x00                                                                    // [0x00, offset]
+        0x04                                                                    // [0x04, offset]
         mstore                                                                  // []
 
         0x18                                                                    // [length]
-        0x20                                                                    // [0x20, length]
+        0x24                                                                    // [0x24, length]
         mstore                                                                  // []
 
         0x5f636f6d6d69746d656e74206e6f7420696e206669656c640000000000000000      // ["_commitment not in field"]
-        0x40                                                                    // [0x40, "_commitment not in field"]
+        0x44                                                                    // [0x44, "_commitment not in field"]
         mstore                                                                  // []
 
-        0x60                                                                    // [size]
+        0x64                                                                    // [size]
         0x00                                                                    // [offset, size]
 
         revert                                                                  // []
@@ -255,15 +279,46 @@
     // make function non payable
     NON_PAYABLE()
 
+    // get pendingCommit
     caller                                                                      // [msg.sender]
     INTERNAL_PENDING_COMMIT()                                                   // [pendingCommitSlot]
+    dup1                                                                        // [pendingCommitSlot, pendingCommitSlot]
+    sload                                                                       // [_commitment, pendingCommitSlot]
+    iszero                                                                      // [bool, pendingCommitSlot]
+    commitmentErr                                                               // [commitmentErr, pendingCommitSlot]
+    jumpi                                                                       // [pendingCommitSlot]
 
+    // set to 0
     0x00                                                                        // [0x00, pendingCommitSlot]
     swap1                                                                       // [pendingCommitSlot, 0x00]
     sstore                                                                      // []
 
+    // send denomination amount of ether to caller
     0x00                                                                        // [fee]
     0x00                                                                        // [relayer, fee]
     caller                                                                      // [recipient, relayer, fee]
     PROCESS_WITHDRAW()                                                          // []
+    stop
+
+
+    commitmentErr:
+        0x08c379a000000000000000000000000000000000000000000000000000000000      // [bytes4(keccak256("Error(string)"))]
+        0x00                                                                    // [0x00, [bytes4(keccak256("Error(string)"))]]
+        mstore                                                                  // []
+
+        0x20                                                                    // [offset]
+        0x04                                                                    // [0x04, offset]
+        mstore                                                                  // []
+
+        0x0d                                                                    // [length]
+        0x24                                                                    // [0x24, length]
+        mstore                                                                  // []
+
+        0x6e6f7420636f6d6d697474656400000000000000000000000000000000000000      // ["not committed"]
+        0x44                                                                    // [0x44, "not committed"]
+        mstore                                                                  // []
+
+        0x64                                                                    // [size]
+        0x00                                                                    // [offset, size]
+        revert                                                                  // []
 }

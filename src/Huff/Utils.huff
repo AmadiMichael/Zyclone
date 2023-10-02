@@ -103,7 +103,6 @@
 
 /**
  * @dev nonpayable modifier
- *
  */
 #define macro NON_PAYABLE() = takes (0) returns (0) {
     callvalue                                                               // [callvalue]
@@ -154,7 +153,7 @@
 
 
 /**
- * @dev
+ * @dev returns the top of the stack from execution
  */
 #define macro RETURN_32_BYTES() = takes(1) {
     // Stack input:                     [val]
@@ -172,7 +171,9 @@
 
 
 
-
+/**
+ * @dev returns the denomination constant's value
+ */
 #define macro INTERNAL_DENOMINATION() = takes(0) returns(1) {
     // Stack input:                     []
     // Stack output:                    [denomination]
@@ -181,6 +182,9 @@
 }
 
 
+/**
+ * @dev pushes the current root index from storage to the stack and continues execution
+ */
 #define macro INTERNAL_CURRENT_ROOT_INDEX() = takes(0) returns(1) {
     // Stack input:                     []
     // Stack output:                    [currentRootIndex]
@@ -190,6 +194,9 @@
 }
 
 
+/**
+ * @dev pushes the next leaf index from storage to the stack and continues execution
+ */
 #define macro INTERNAL_NEXT_LEAF_INDEX() = takes(0) returns(1) {
     // Stack input:                     []
     // Stack output:                    [nextIndex]
@@ -199,7 +206,9 @@
 }
 
 
-
+/**
+ * @dev pushes roots[top of stack].slot to the stack and continues execution
+ */
 #define macro INTERNAL_ROOTS() = takes(1) returns(1) {
     // Stack input:                     [index]
     // Stack output:                    [slot]
@@ -209,7 +218,9 @@
 }
 
 
-
+/**
+ * @dev pushes nullifierHash[top of the stack].slot to the stack and continues execution
+ */
 #define macro INTERNAL_NULLIFIER_HASHES() = takes(1) returns(1) {
     // Stack input:                     [nullifierHash]
     // Stack output:                    [slot]
@@ -226,7 +237,9 @@
 }
 
 
-
+/**
+ * @dev pushes pendingCommit[top of the stack].slot to the stack and continues execution
+ */
 #define macro INTERNAL_PENDING_COMMIT() = takes(1) returns(1) {
     // Stack input:                     [address]
     // Stack output:                    [slot]

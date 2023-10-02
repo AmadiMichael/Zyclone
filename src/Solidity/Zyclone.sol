@@ -52,6 +52,7 @@ abstract contract Zyclone is IZyclone, ReentrancyGuard {
      * @dev Let users delete a previously committed commitment hash and withdraw 1 ether they deposited alongside it
      */
     function clear() external nonReentrant {
+        require(pendingCommit[msg.sender] != bytes32(0), "not committed");
         delete pendingCommit[msg.sender];
         _processWithdraw(payable(msg.sender), payable(address(0)), 0);
     }
@@ -62,7 +63,7 @@ abstract contract Zyclone is IZyclone, ReentrancyGuard {
      */
     function commit(bytes32 _commitment) external payable nonReentrant {
         require(pendingCommit[msg.sender] == bytes32(0), "Pending commitment hash");
-        require(uint256(_commitment) < FIELD_SIZE, "_commitment should be inside the field");
+        require(uint256(_commitment) < FIELD_SIZE, "_commitment not in field");
         _processDeposit();
         pendingCommit[msg.sender] = _commitment;
     }

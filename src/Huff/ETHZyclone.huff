@@ -24,8 +24,24 @@
     jumpi                                                               // []
 
 
-    0x00                                                                // [0x00]
-    0x00                                                                // [0x00, 0x00]
+    0x08c379a000000000000000000000000000000000000000000000000000000000  // [bytes4(keccak256("Error(string)"))]
+    0x00                                                                // [0x80, [bytes4(keccak256("Error(string)"))]]
+    mstore                                                              // []
+    0x20                                                                // [0x20]
+    0x04                                                                // [0x04, 0x20]
+    mstore                                                              // []
+    0x35                                                                // [len]
+    0x24                                                                // [0x24, len]
+    mstore                                                              // []
+    0x506c656173652073656e64206044656e6f6d696e6174696f6e60204554482061  // [first-32-bytes]
+    0x44                                                                // [0x44, first-32-bytes]
+    mstore                                                              // []
+    0x6c6f6e672077697468207472616e73616374696f6e0000000000000000000000  // [last-bytes]
+    0x64                                                                // [0x64, last-bytes]
+    mstore                                                              // []
+        
+    0x84                                                                // [0x84]
+    0x00                                                                // [0x00, 0x84]
     revert                                                              // []
 
     process_deposit_jumpdest:

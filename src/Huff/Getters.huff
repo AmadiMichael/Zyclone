@@ -4,26 +4,35 @@
  */
 
 
-
+/**
+ * @dev returns denomination and ends execution
+ */
 #define macro DENOMINATION() = {
     INTERNAL_DENOMINATION()                                                 // [denomination]
     RETURN_32_BYTES()                                                       // []
 }
 
-
+/**
+ * @dev returns currentRootIndex and ends execution
+ */
 #define macro CURRENT_ROOT_INDEX() = {
     INTERNAL_CURRENT_ROOT_INDEX()                                           // [currentRootIndex]
     RETURN_32_BYTES()                                                       // []
 }
 
 
+/**
+ * @dev returns nextIndex and ends execution
+ */
 #define macro NEXT_LEAF_INDEX() = {
     INTERNAL_CURRENT_ROOT_INDEX()                                           // [newLeafIndex]
     RETURN_32_BYTES()                                                       // []
 }
 
 
-
+/**
+ * @dev returns roots[calldataload(0x04)] and ends execution
+ */
 #define macro ROOTS() = {
     0x04                                                                    // [0x04]
     calldataload                                                            // [index]
@@ -33,7 +42,9 @@
 }
 
 
-
+/**
+ * @dev returns nullifierHashes[calldataload(0x04)] and ends execution
+ */
 #define macro NULLIFIER_HASHES() = {
     0x04                                                                    // [0x04]
     calldataload                                                            // [nullifierHash]
@@ -43,7 +54,9 @@
 }
 
 
-
+/**
+ * @dev returns pendingCommit[calldataload(0x04)] and ends execution
+ */
 #define macro PENDING_COMMIT() = {
     0x04                                                                    // [0x04]
     calldataload                                                            // [address]

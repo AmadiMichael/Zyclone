@@ -252,4 +252,77 @@ abstract contract ZycloneTest is Test {
             userOldSigner, relayerSigner, 0, 0, nullifier, nullifierHash, updated_pushedCommitments, bytes("")
         );
     }
+
+    function test_commit_reverts_if_callvalue_not_denomination() external {
+        address userOldSigner = address(bytes20(keccak256("userOldSigner")));
+
+        startHoax(userOldSigner, 1 ether);
+        vm.expectRevert(bytes("Please send `Denomination` ETH along with transaction"));
+        zyclone.commit{value: 0.9 ether}(bytes32(uint256(1)));
+    }
+
+    function test_clear() external {
+        address userOldSigner = address(bytes20(keccak256("userOldSigner")));
+
+        startHoax(userOldSigner, 1 ether);
+        zyclone.commit{value: 1 ether}(bytes32(uint256(1)));
+
+        uint256 balanceBefore = userOldSigner.balance;
+        zyclone.clear();
+        assertEq(balanceBefore + 1 ether, userOldSigner.balance);
+    }
+
+    function test_clear_reverts_if_not_committed() external {
+        address userOldSigner = address(bytes20(keccak256("userOldSigner")));
+
+        startHoax(userOldSigner, 1 ether);
+        zyclone.commit{value: 1 ether}(bytes32(uint256(1)));
+
+        zyclone.clear();
+
+        vm.expectRevert(bytes("not committed"));
+        zyclone.clear();
+    }
+
+    function test_commit_revert_if_has_pending_commit() external {
+        address userOldSigner = address(bytes20(keccak256("userOldSigner")));
+
+        startHoax(userOldSigner, 2 ether);
+        zyclone.commit{value: 1 ether}(bytes32(uint256(1)));
+
+        vm.expectRevert(bytes("Pending commitment hash"));
+        zyclone.commit{value: 1 ether}(bytes32(uint256(2)));
+    }
+
+    function test_commit_revert_if_commitment_hash_not_within_field() external {
+        address userOldSigner = address(bytes20(keccak256("userOldSigner")));
+
+        startHoax(userOldSigner, 2 ether);
+        vm.expectRevert(bytes("_commitment not in field"));
+        zyclone.commit{value: 1 ether}(
+            bytes32(uint256(21888242871839275222246405745257275088548364400416034343698204186575808495618))
+        );
+    }
+
+    function test_withdraw_reverts_if_fee_exceeds_denomination() external {
+        address userOldSigner = address(bytes20(keccak256("userOldSigner")));
+        address relayerSigner = address(bytes20(keccak256("relayerSigner")));
+
+        (bytes32 commitment, bytes32 nullifierHash, bytes32 nullifier) =
+            depositAndAssert(userOldSigner, 0, new bytes32[](0));
+
+        // withdraw but expect revert
+        bytes32[] memory pushedCommitments = new bytes32[](1);
+        pushedCommitments[0] = commitment;
+        withdrawAndAssert(
+            userOldSigner,
+            relayerSigner,
+            1.1 ether,
+            0,
+            nullifier,
+            nullifierHash,
+            pushedCommitments,
+            bytes("Fee exceeds transfer value")
+        );
+    }
 }

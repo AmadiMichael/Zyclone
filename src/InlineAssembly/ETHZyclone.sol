@@ -13,7 +13,7 @@ contract ETHZyclone is Zyclone {
     ) Zyclone(_depositVerifier, _withdrawVerifier, _denomination, _merkleTreeHeight) {}
 
     function _processDeposit() internal override {
-        require(msg.value == denomination, "Please send `mixDenomination` ETH along with transaction");
+        require(msg.value == denomination, "Please send `Denomination` ETH along with transaction");
     }
 
     function _processWithdraw(address payable _recipient, address payable _relayer, uint256 _fee) internal override {

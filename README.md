@@ -66,11 +66,13 @@ In the huff folder, it is separated into 6 files
 
 # Circuits ⚡️
 
-- Withdraw circuit: The withdraw circuit works exactly the same as that of Tornado cash except that Zyclone checks for `pederson(nullifier, 0)` and `pederson(nullifier, 1, base10(pathIndices))` to constrain correct commitmentHashes and nullifierHashes.
+- Withdraw circuit: 
+
+  The withdraw circuit works exactly the same as that of Tornado cash except that Zyclone checks for `pederson(nullifier, 0)` and `pederson(nullifier, 1, base10(pathIndices))` to constrain correct commitmentHashes and nullifierHashes.
 - Deposit circuit: This is the interesting bit,
   - Firstly, the user needs to reconstruct the merkle tree locally by getting all past commitment hashes (this is available via events or an open source data base).
   - Next, they add their commitment hash to the tree and store the pathElements, pathIndices used to add it to the current root, they also store this root.
-  - Next, they also store the top node pair that hash up to the current root. This is required and one of it must be equal to the top pathElement. This is important to ensure that the root the user inserted root into is actually the current root as provided by the contract when verifying onchain. If not added, a malicious user can create their own merkle tree which they know the nullifiers to and update the onchain root and sweep the contract.
+  - Next, they also store the top node pair that hash up to the current root. This is required and one of it must be equal to the top pathElement. This is important to ensure that the root the user inserted their commitment hash into is actually the current root as provided by the contract when verifying onchain. If not added, a malicious user can create their own merkle tree which they know the nullifiers to and update the onchain root and sweep the contract.
   - The circuit then verifies the above checks. In summary:
     - `pederson(topNodes[0], topNodes[1]) == currentRoot `
     - `topNodes[0] == pathElements[levels - 1] || topNodes[1] == pathElements[levels - 1]`

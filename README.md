@@ -82,5 +82,5 @@ In the huff folder, it is separated into 6 files
 # Team 🐴
 
 - [Tanim0la](https://x.com/tanim0la)
-- [Michaels](https://x.com/amadimichaels)
+- [Michael Amadi](https://x.com/amadimichaels)
 - [Jesserc](https://x.com/jesserc_)

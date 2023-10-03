@@ -15,21 +15,21 @@ Each of the implementation's test inherit a base test `Zyclone.t.sol` which hold
 
 # Zyclone 🌀
 
-Zyclone is a Mixer similar to Tornado Cash but with some extra modifications to its approach in order to achieve the significant gas savings listed below.
+Zyclone is a Mixer similar to Tornado Cash but with some extra modifications to its approach in order to achieve the significant gas savings listed below. In comparison it is `500%` cheaper than Tornado cash to use.
 
 ### General Benchmarks
 
-| Version      | Creation code size | Creation gas cost | Runtime code size | Runtime gas cost |
-| ------------ | ------------------ | ----------------- | ----------------- | ---------------- |
-| Tornado Cash | -                  | -                 | -                 | -                |
-| Zyclone      | -                  | -                 | -                 | -                |
+| Version           | Creation code size | Creation gas cost | Runtime code size |
+| ----------------- | ------------------ | ----------------- | ----------------- |
+| Tornado Cash      | 5,438 bytes        | 3,449,416         | 4128 bytes        |
+| Zyclone Huff impl | 1,932 bytes        | 400,082           | 1888 bytes        |
 
-### Function call benchmarks
+### Runtime (Function call) benchmarks
 
-| Version      | Deposit | Withdraw |
-| ------------ | ------- | -------- |
-| Tornado Cash | 1088354 | 301233   |
-| Zyclone      | 232131  | 252289   |
+| Version           | Deposit | Withdraw |
+| ----------------- | ------- | -------- |
+| Tornado Cash      | 1088354 | 301233   |
+| Zyclone Huff impl | 229016  | 249780   |
 
 ## Differences
 
@@ -66,9 +66,10 @@ In the huff folder, it is separated into 6 files
 
 # Circuits ⚡️
 
-- Withdraw circuit: 
+- Withdraw circuit:
 
   The withdraw circuit works exactly the same as that of Tornado cash except that Zyclone checks for `pederson(nullifier, 0)` and `pederson(nullifier, 1, base10(pathIndices))` to constrain correct commitmentHashes and nullifierHashes.
+
 - Deposit circuit: This is the interesting bit,
   - Firstly, the user needs to reconstruct the merkle tree locally by getting all past commitment hashes (this is available via events or an open source data base).
   - Next, they add their commitment hash to the tree and store the pathElements, pathIndices used to add it to the current root, they also store this root.

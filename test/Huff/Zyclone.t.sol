@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-import {Vm, console2} from "forge-std/Test.sol";
 import {HuffDeployer} from "foundry-huff/HuffDeployer.sol";
 import {ETHZyclone} from "../../src/Solidity/ETHZyclone.sol";
 import {ZycloneTest, IZyclone} from "../Zyclone.t.sol";

@@ -79,8 +79,8 @@ In the huff folder, it is separated into 6 files
     - `topNodes[0] == pathElements[levels - 1] || topNodes[1] == pathElements[levels - 1]`
     - `currentRoot.insert(commitmentHash) == newRoot`, when `insert()` returns the new merkle root
 
-
 # Team 🐴
+
 - [Tanim0la](https://x.com/tanim0la)
 - [Michaels](https://x.com/amadimichaels)
 - [Jesserc](https://x.com/jesserc_)

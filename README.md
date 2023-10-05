@@ -1,6 +1,6 @@
 # Quick setup and test
 
-After cloning locally, run `forge install` and `npm install` to install dependencies. Be sure to already have [circom](https://docs.circom.io/getting-started/installation/#installing-dependencies) installed.
+After cloning locally, run `forge install` and `npm install` to install dependencies. Be sure to already have [circom](https://docs.circom.io/getting-started/installation/#installing-dependencies) and [huff](https://docs.huff.sh/get-started/installing/#installing-huff) installed.
 
 To quickly run tests:
 

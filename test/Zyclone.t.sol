@@ -2,7 +2,7 @@
 pragma solidity ^0.8.13;
 
 import {Test} from "forge-std/Test.sol";
-import {IZyclone, IWithdrawVerifier, IDepositVerifier, Proof} from "../src/Shared/Interfaces.sol";
+import {IZyclone, IETHZyclone, IWithdrawVerifier, IDepositVerifier, Proof} from "../src/Shared/Interfaces.sol";
 import {Groth16Verifier as WithdrawGroth16Verifier} from "../build/WithdrawVerifier.sol";
 import {Groth16Verifier as DepositGroth16Verifier} from "../build/DepositVerifier.sol";
 
@@ -136,7 +136,7 @@ abstract contract ZycloneTest is Test {
         bytes32 nullifier,
         bytes32 nullifierHash,
         bytes32[] memory pushedCommitments,
-        bytes memory errorIfAny
+        bytes4 errorIfAny
     ) internal returns (Proof memory proof, bytes32 root) {
         startHoax(relayer);
 
@@ -150,7 +150,7 @@ abstract contract ZycloneTest is Test {
 
         // withdraw
 
-        if (keccak256(errorIfAny) == keccak256(bytes(""))) {
+        if (errorIfAny == 0x00) {
             uint256 userBalBefore = user.balance;
 
             vm.expectEmit(true, false, false, true, address(zyclone));
@@ -175,7 +175,7 @@ abstract contract ZycloneTest is Test {
         // withdraw
         bytes32[] memory pushedCommitments = new bytes32[](1);
         pushedCommitments[0] = commitment;
-        withdrawAndAssert(userOldSigner, relayerSigner, 0, 0, nullifier, nullifierHash, pushedCommitments, bytes(""));
+        withdrawAndAssert(userOldSigner, relayerSigner, 0, 0, nullifier, nullifierHash, pushedCommitments, 0x00);
     }
 
     function test_prevent_double_spend() external {
@@ -188,7 +188,7 @@ abstract contract ZycloneTest is Test {
         // withdraw
         bytes32[] memory pushedCommitments = new bytes32[](1);
         pushedCommitments[0] = commitment;
-        withdrawAndAssert(userOldSigner, relayerSigner, 0, 0, nullifier, nullifierHash, pushedCommitments, bytes(""));
+        withdrawAndAssert(userOldSigner, relayerSigner, 0, 0, nullifier, nullifierHash, pushedCommitments, 0x00);
 
         // try again but expect error
         withdrawAndAssert(
@@ -199,7 +199,7 @@ abstract contract ZycloneTest is Test {
             nullifier,
             nullifierHash,
             pushedCommitments,
-            bytes("The note has been already spent")
+            IZyclone.NoteSpent.selector
         );
     }
 
@@ -226,7 +226,7 @@ abstract contract ZycloneTest is Test {
             attacker_nullifier,
             attacker_nullifierHash,
             pushedCommitments,
-            bytes("Cannot find your merkle root")
+            IZyclone.RootNotKnown.selector
         );
     }
 
@@ -249,7 +249,7 @@ abstract contract ZycloneTest is Test {
         updated_pushedCommitments[0] = commitment;
         updated_pushedCommitments[1] = new_commitment;
         withdrawAndAssert(
-            userOldSigner, relayerSigner, 0, 0, nullifier, nullifierHash, updated_pushedCommitments, bytes("")
+            userOldSigner, relayerSigner, 0, 0, nullifier, nullifierHash, updated_pushedCommitments, 0x00
         );
     }
 
@@ -257,7 +257,7 @@ abstract contract ZycloneTest is Test {
         address userOldSigner = address(bytes20(keccak256("userOldSigner")));
 
         startHoax(userOldSigner, 1 ether);
-        vm.expectRevert(bytes("Please send `Denomination` ETH along with transaction"));
+        vm.expectRevert(IETHZyclone.NotEnoughValue.selector);
         zyclone.commit{value: 0.9 ether}(bytes32(uint256(1)));
     }
 
@@ -280,7 +280,7 @@ abstract contract ZycloneTest is Test {
 
         zyclone.clear();
 
-        vm.expectRevert(bytes("not committed"));
+        vm.expectRevert(IZyclone.NotCommitted.selector);
         zyclone.clear();
     }
 
@@ -290,7 +290,7 @@ abstract contract ZycloneTest is Test {
         startHoax(userOldSigner, 2 ether);
         zyclone.commit{value: 1 ether}(bytes32(uint256(1)));
 
-        vm.expectRevert(bytes("Pending commitment hash"));
+        vm.expectRevert(IZyclone.PendingCommitmentHash.selector);
         zyclone.commit{value: 1 ether}(bytes32(uint256(2)));
     }
 
@@ -298,7 +298,7 @@ abstract contract ZycloneTest is Test {
         address userOldSigner = address(bytes20(keccak256("userOldSigner")));
 
         startHoax(userOldSigner, 2 ether);
-        vm.expectRevert(bytes("_commitment not in field"));
+        vm.expectRevert(IZyclone.CommitmentNotInField.selector);
         zyclone.commit{value: 1 ether}(
             bytes32(uint256(21888242871839275222246405745257275088548364400416034343698204186575808495618))
         );
@@ -322,7 +322,7 @@ abstract contract ZycloneTest is Test {
             nullifier,
             nullifierHash,
             pushedCommitments,
-            bytes("Fee exceeds transfer value")
+            IZyclone.FeeExceedsValue.selector
         );
     }
 }

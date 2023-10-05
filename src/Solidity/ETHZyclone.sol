@@ -2,12 +2,10 @@
 
 pragma solidity ^0.8.13;
 
-import "./Zyclone.sol";
+import { IETHZyclone } from "../Shared/Interfaces.sol";
+import { Zyclone, IDepositVerifier, IWithdrawVerifier } from "./Zyclone.sol";
 
-contract ETHZyclone is Zyclone {
-    error NotEnoughValue();
-    error PaymentUnsuccessful();
-    error RelayerPaymentUnsuccessful();
+contract ETHZyclone is IETHZyclone, Zyclone {
     constructor(
         IDepositVerifier _depositVerifier,
         IWithdrawVerifier _withdrawVerifier,

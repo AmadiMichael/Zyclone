@@ -6,17 +6,6 @@ import {ReentrancyGuard} from "../Shared/ReentrancyGuard.sol";
 import {IZyclone, IWithdrawVerifier, IDepositVerifier, Proof} from "../Shared/Interfaces.sol";
 
 abstract contract Zyclone is IZyclone, ReentrancyGuard {
-    error NotCommitted();
-    error InvalidProof();
-    error FeeExceedsValue();
-    error NoteSpent();
-    error RootNotKnown();
-    error DenominationMissing();
-    error TreeLevelsBounds();
-    error TreeLevelsMissing();
-    error PendingCommitmentHash();
-    error CommitmentNotInField();
-
     uint256 constant FIELD_SIZE = 21888242871839275222246405745257275088548364400416034343698204186575808495617;
     uint256 constant ROOT_HISTORY_SIZE = 30;
     bytes32 constant initialRootZero = 0x2b0f6fc0179fa65b6f73627c0e1e84c7374d2eaec44c9a48f2571393ea77bcbb;
@@ -201,15 +190,14 @@ abstract contract Zyclone is IZyclone, ReentrancyGuard {
     /**
      * @dev Whether the root is present in the root history
      */
-    function isKnownRoot(bytes32 _root) private view returns (bool) {
-        if (_root == ZERO_BYTES) return false;
-
-        uint256 i = currentRootIndex;
-        do {
-            if (_root == roots[i]) return true;
-            if (i == ZERO) i = ROOT_HISTORY_SIZE;
-            unchecked { --i; }
-        } while (i != currentRootIndex);
-        return false;
+    function isKnownRoot(bytes32 _root) private view returns (bool known) {
+        if (_root > ZERO_BYTES) {
+            uint256 i = currentRootIndex;
+            do {
+                if (_root == roots[i]) return true;
+                if (i == ZERO) i = ROOT_HISTORY_SIZE;
+                i--;
+            } while (i != currentRootIndex);
+        }
     }
 }

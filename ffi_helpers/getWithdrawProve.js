@@ -15,7 +15,3 @@ getWithdrawProve(
   console.log(res)
   process.exit(0)
 });
-
-process.on('exit', () => {
-  console.log('exit', r)
-})

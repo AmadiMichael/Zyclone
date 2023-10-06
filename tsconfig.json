@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+    "outDir": "ffi_helpers/lib",
+    "target": "es2020",
+    "module": "NodeNext"
+  },
+  "include": [
+    "./helpers"
+  ]
+}

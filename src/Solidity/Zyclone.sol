@@ -9,6 +9,10 @@ abstract contract Zyclone is IZyclone, ReentrancyGuard {
     uint256 constant FIELD_SIZE = 21888242871839275222246405745257275088548364400416034343698204186575808495617;
     uint256 constant ROOT_HISTORY_SIZE = 30;
     bytes32 constant initialRootZero = 0x2b0f6fc0179fa65b6f73627c0e1e84c7374d2eaec44c9a48f2571393ea77bcbb;
+    uint256 constant internal ZERO = 0;
+    uint256 constant internal ONE = 1;
+    uint256 constant internal THIRTY_ONE = 31;
+    bytes32 constant internal ZERO_BYTES = bytes32(ZERO);
 
     uint256 public immutable denomination;
     uint256 immutable levels;
@@ -37,12 +41,18 @@ abstract contract Zyclone is IZyclone, ReentrancyGuard {
         uint256 _denomination,
         uint256 _merkleTreeHeight
     ) {
-        require(_merkleTreeHeight > 0, "_treeLevels should be greater than zero");
-        require(_merkleTreeHeight < 32, "_treeLevels should be less than 32");
-        require(_denomination > 0, "denomination should be greater than 0");
+        if (_merkleTreeHeight == ZERO) {
+            revert TreeLevelsMissing();
+        }
+        if (_merkleTreeHeight > THIRTY_ONE) {
+            revert TreeLevelsBounds();
+        }
+        if (_denomination == ZERO) {
+            revert DenominationMissing();
+        }
 
         levels = _merkleTreeHeight;
-        roots[0] = initialRootZero;
+        roots[ZERO] = initialRootZero;
         depositVerifier = _depositVerifier;
         withdrawVerifier = _withdrawVerifier;
         denomination = _denomination;
@@ -52,9 +62,11 @@ abstract contract Zyclone is IZyclone, ReentrancyGuard {
      * @dev Let users delete a previously committed commitment hash and withdraw 1 ether they deposited alongside it
      */
     function clear() external nonReentrant {
-        require(pendingCommit[msg.sender] != bytes32(0), "not committed");
-        delete pendingCommit[msg.sender];
-        _processWithdraw(payable(msg.sender), payable(address(0)), 0);
+        if (pendingCommit[msg.sender] == ZERO_BYTES) {
+            revert NotCommitted();
+        }
+        pendingCommit[msg.sender] = ZERO_BYTES;
+        _processWithdraw(payable(msg.sender), payable(address(0)), ZERO);
     }
 
     /**
@@ -62,8 +74,12 @@ abstract contract Zyclone is IZyclone, ReentrancyGuard {
      * @param _commitment commitment hash of user's deposit
      */
     function commit(bytes32 _commitment) external payable nonReentrant {
-        require(pendingCommit[msg.sender] == bytes32(0), "Pending commitment hash");
-        require(uint256(_commitment) < FIELD_SIZE, "_commitment not in field");
+        if (pendingCommit[msg.sender] != ZERO_BYTES) {
+            revert PendingCommitmentHash();
+        }
+        if (uint256(_commitment) >= FIELD_SIZE) {
+            revert CommitmentNotInField();
+        }
         _processDeposit();
         pendingCommit[msg.sender] = _commitment;
     }
@@ -75,24 +91,27 @@ abstract contract Zyclone is IZyclone, ReentrancyGuard {
      */
     function deposit(Proof calldata _proof, bytes32 newRoot) external nonReentrant {
         bytes32 _commitment = pendingCommit[msg.sender];
-        require(_commitment != bytes32(0), "not commited");
+        if (_commitment == ZERO_BYTES) {
+            revert NotCommitted();
+        }
 
         uint256 _currentRootIndex = currentRootIndex;
 
-        require(
-            depositVerifier.verifyProof(
+        if (
+            !depositVerifier.verifyProof(
                 _proof.a,
                 _proof.b,
                 _proof.c,
                 [uint256(roots[_currentRootIndex]), uint256(_commitment), uint256(newRoot)]
-            ),
-            "Invalid deposit proof"
-        );
+            )
+        ) {
+            revert InvalidProof();
+        }
 
         // set pending commit to 0 bytes
-        pendingCommit[msg.sender] = bytes32(0);
+        pendingCommit[msg.sender] = ZERO_BYTES;
 
-        uint128 newCurrentRootIndex = uint128((_currentRootIndex + 1) % ROOT_HISTORY_SIZE);
+        uint256 newCurrentRootIndex = uint128((_currentRootIndex + ONE) % ROOT_HISTORY_SIZE);
 
         // update currentRootIndex
         currentRootIndex = newCurrentRootIndex;
@@ -103,7 +122,9 @@ abstract contract Zyclone is IZyclone, ReentrancyGuard {
         uint256 _nextIndex = nextIndex;
 
         // update next index
-        nextIndex += 1;
+        unchecked {
+            nextIndex = _nextIndex + ONE;
+        }
 
         emit Deposit(_commitment, _nextIndex, block.timestamp);
     }
@@ -129,12 +150,18 @@ abstract contract Zyclone is IZyclone, ReentrancyGuard {
         address payable _relayer,
         uint256 _fee
     ) external nonReentrant {
-        require(_fee <= denomination, "Fee exceeds transfer value");
-        require(!nullifierHashes[_nullifierHash], "The note has been already spent");
-        require(isKnownRoot(_root), "Cannot find your merkle root"); // Make sure to use a recent one
+        if (_fee > denomination) {
+            revert FeeExceedsValue();
+        }
+        if (nullifierHashes[_nullifierHash]) {
+            revert NoteSpent();
+        }
+        if (!isKnownRoot(_root)) {
+            revert RootNotKnown();
+        }
 
-        require(
-            withdrawVerifier.verifyProof(
+        if (
+            !withdrawVerifier.verifyProof(
                 _proof.a,
                 _proof.b,
                 _proof.c,
@@ -145,9 +172,10 @@ abstract contract Zyclone is IZyclone, ReentrancyGuard {
                     uint256(uint160(address(_relayer))),
                     _fee
                 ]
-            ),
-            "Invalid withdraw proof"
-        );
+            )
+        ) {
+            revert InvalidProof();
+        }
 
         nullifierHashes[_nullifierHash] = true;
         _processWithdraw(_recipient, _relayer, _fee);
@@ -162,15 +190,14 @@ abstract contract Zyclone is IZyclone, ReentrancyGuard {
     /**
      * @dev Whether the root is present in the root history
      */
-    function isKnownRoot(bytes32 _root) private view returns (bool) {
-        if (_root == 0) return false;
-
-        uint256 i = currentRootIndex;
-        do {
-            if (_root == roots[i]) return true;
-            if (i == 0) i = ROOT_HISTORY_SIZE;
-            i--;
-        } while (i != currentRootIndex);
-        return false;
+    function isKnownRoot(bytes32 _root) private view returns (bool known) {
+        if (_root > ZERO_BYTES) {
+            uint256 i = currentRootIndex;
+            do {
+                if (_root == roots[i]) return true;
+                if (i == ZERO) i = ROOT_HISTORY_SIZE;
+                i--;
+            } while (i != currentRootIndex);
+        }
     }
 }

@@ -9,6 +9,10 @@ abstract contract Zyclone is IZyclone, ReentrancyGuard {
     uint256 constant FIELD_SIZE = 21888242871839275222246405745257275088548364400416034343698204186575808495617;
     uint256 constant ROOT_HISTORY_SIZE = 30;
     bytes32 constant initialRootZero = 0x2b0f6fc0179fa65b6f73627c0e1e84c7374d2eaec44c9a48f2571393ea77bcbb;
+    uint256 constant internal ZERO = 0;
+    uint256 constant internal ONE = 1;
+    uint256 constant internal THIRTY_ONE = 31;
+    bytes32 constant internal ZERO_BYTES = bytes32(ZERO);
 
     uint256 public immutable denomination;
     uint256 immutable levels;
@@ -37,12 +41,18 @@ abstract contract Zyclone is IZyclone, ReentrancyGuard {
         uint256 _denomination,
         uint256 _merkleTreeHeight
     ) {
-        require(_merkleTreeHeight > 0, "_treeLevels should be greater than zero");
-        require(_merkleTreeHeight < 32, "_treeLevels should be less than 32");
-        require(_denomination > 0, "denomination should be greater than 0");
+        if (_merkleTreeHeight == ZERO) {
+            revert TreeLevelsMissing();
+        }
+        if (_merkleTreeHeight > THIRTY_ONE) {
+            revert TreeLevelsBounds();
+        }
+        if (_denomination == ZERO) {
+            revert DenominationMissing();
+        }
 
         levels = _merkleTreeHeight;
-        roots[0] = initialRootZero;
+        roots[ZERO] = initialRootZero;
         depositVerifier = _depositVerifier;
         withdrawVerifier = _withdrawVerifier;
         denomination = _denomination;
@@ -52,9 +62,11 @@ abstract contract Zyclone is IZyclone, ReentrancyGuard {
      * @dev Let users delete a previously committed commitment hash and withdraw 1 ether they deposited alongside it
      */
     function clear() external nonReentrant {
-        require(pendingCommit[msg.sender] != bytes32(0), "not committed");
-        delete pendingCommit[msg.sender];
-        _processWithdraw(payable(msg.sender), payable(address(0)), 0);
+        if (pendingCommit[msg.sender] == ZERO_BYTES) {
+            revert NotCommitted();
+        }
+        pendingCommit[msg.sender] = ZERO_BYTES;
+        _processWithdraw(payable(msg.sender), payable(address(0)), ZERO);
     }
 
     /**
@@ -62,8 +74,12 @@ abstract contract Zyclone is IZyclone, ReentrancyGuard {
      * @param _commitment commitment hash of user's deposit
      */
     function commit(bytes32 _commitment) external payable nonReentrant {
-        require(pendingCommit[msg.sender] == bytes32(0), "Pending commitment hash");
-        require(uint256(_commitment) < FIELD_SIZE, "_commitment not in field");
+        if (pendingCommit[msg.sender] != ZERO_BYTES) {
+            revert PendingCommitmentHash();
+        }
+        if (uint256(_commitment) >= FIELD_SIZE) {
+            revert CommitmentNotInField();
+        }
         _processDeposit();
         pendingCommit[msg.sender] = _commitment;
     }
@@ -76,6 +92,8 @@ abstract contract Zyclone is IZyclone, ReentrancyGuard {
 
     function deposit(Proof calldata, bytes32 newRoot) external nonReentrant {
         IDepositVerifier _depositVerifier = depositVerifier;
+        bytes4 notCommittedSelector = IZyclone.NotCommitted.selector;
+        bytes4 invalidProofSelector = IZyclone.InvalidProof.selector;
         assembly {
             mstore(0x00, caller())
             mstore(0x20, pendingCommit.slot)
@@ -86,7 +104,7 @@ abstract contract Zyclone is IZyclone, ReentrancyGuard {
             if iszero(_commitment) {
                 mstore(0x00, 0x20)
                 mstore(0x20, 0x0c)
-                mstore(0x40, "not committed")
+                mstore(0x40, notCommittedSelector)
                 revert(0x00, 0x60)
             }
 
@@ -100,9 +118,15 @@ abstract contract Zyclone is IZyclone, ReentrancyGuard {
             mstore(0x1a4, _commitment)
             mstore(0x1c4, newRoot)
 
-            if iszero(call(gas(), _depositVerifier, 0x00, 0x80, 0x164, 0x00, 0x20)) { revert(0x00, 0x00) }
+            if iszero(call(gas(), _depositVerifier, 0x00, 0x80, 0x164, 0x00, 0x20)) {
+                mstore(0x00, invalidProofSelector)
+                revert(0x00, 0x00)
+            }
 
-            if iszero(mload(0x00)) { revert(0x00, 0x00) }
+            if iszero(mload(0x00)) {
+                mstore(0x00, invalidProofSelector)
+                revert(0x00, 0x00)
+            }
 
             // set pending commit to 0 bytes
             sstore(pendingCommitSlot, 0x00)
@@ -151,14 +175,12 @@ abstract contract Zyclone is IZyclone, ReentrancyGuard {
         IWithdrawVerifier _withdrawVerifier = withdrawVerifier;
         uint256 _denomination = denomination;
         bytes32 _nullifierHashesSlot;
-
+        bytes4 feeExceedsValueSelector = IZyclone.FeeExceedsValue.selector;
+        bytes4 noteSpentSelector = IZyclone.NoteSpent.selector;
         assembly {
             if gt(_fee, _denomination) {
-                mstore(0x00, hex"08c379a0")
-                mstore(0x04, 0x20)
-                mstore(0x24, 0x1a)
-                mstore(0x44, "Fee exceeds transfer value")
-                revert(0x00, 0x5e)
+                mstore(0x00, feeExceedsValueSelector)
+                revert(0x00, 0x04)
             }
 
             mstore(0x00, _nullifierHash)
@@ -169,16 +191,16 @@ abstract contract Zyclone is IZyclone, ReentrancyGuard {
             let nullifierHash_ := sload(_nullifierHashesSlot)
 
             if eq(nullifierHash_, 0x01) {
-                mstore(0x80, hex"08c379a0")
-                mstore(0x84, 0x20)
-                mstore(0xa4, 0x1f)
-                mstore(0xc4, "The note has been already spent")
-                revert(0x80, 0x63)
+                mstore(0x00, noteSpentSelector)
+                revert(0x00, 0x04)
             }
         }
 
-        require(isKnownRoot(_root), "Cannot find your merkle root"); // Make sure to use a recent one
+        if (!isKnownRoot(_root)) {
+            revert RootNotKnown();
+        }
 
+        bytes4 invalidProofSelector = IZyclone.InvalidProof.selector;
         assembly {
             mstore(0x80, hex"34baeab9")
             calldatacopy(0x84, 0x04, 0x1a0)
@@ -188,7 +210,7 @@ abstract contract Zyclone is IZyclone, ReentrancyGuard {
             if iszero(mload(0x00)) {
                 mstore(0x80, 0x20)
                 mstore(0xa0, 0x16)
-                mstore(0xc0, "Invalid withdraw proof")
+                mstore(0xc0, invalidProofSelector)
                 revert(0x80, 0x56)
             }
 
@@ -213,15 +235,14 @@ abstract contract Zyclone is IZyclone, ReentrancyGuard {
     /**
      * @dev Whether the root is present in the root history
      */
-    function isKnownRoot(bytes32 _root) private view returns (bool) {
-        if (_root == 0) return false;
-
-        uint256 i = currentRootIndex;
-        do {
-            if (_root == roots[i]) return true;
-            if (i == 0) i = ROOT_HISTORY_SIZE;
-            i--;
-        } while (i != currentRootIndex);
-        return false;
+    function isKnownRoot(bytes32 _root) private view returns (bool known) {
+        if (_root > ZERO_BYTES) {
+            uint256 i = currentRootIndex;
+            do {
+                if (_root == roots[i]) return true;
+                if (i == ZERO) i = ROOT_HISTORY_SIZE;
+                i--;
+            } while (i != currentRootIndex);
+        }
     }
 }

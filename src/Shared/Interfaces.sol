@@ -26,6 +26,17 @@ interface IDepositVerifier {
 }
 
 interface IZyclone {
+    error NotCommitted();
+    error InvalidProof();
+    error FeeExceedsValue();
+    error NoteSpent();
+    error RootNotKnown();
+    error DenominationMissing();
+    error TreeLevelsBounds();
+    error TreeLevelsMissing();
+    error PendingCommitmentHash();
+    error CommitmentNotInField();
+
     function clear() external;
 
     function commit(bytes32 _commitment) external payable;
@@ -46,4 +57,10 @@ interface IZyclone {
     function nextIndex() external view returns (uint256);
 
     function roots(uint256) external view returns (bytes32);
+}
+
+interface IETHZyclone {
+    error NotEnoughValue();
+    error PaymentUnsuccessful();
+    error RelayerPaymentUnsuccessful();
 }

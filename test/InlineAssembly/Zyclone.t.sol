@@ -7,6 +7,6 @@ import {ZycloneTest} from "../Zyclone.t.sol";
 contract ZycloneInlineAssemblyTest is ZycloneTest {
     function setUp() public override {
         super.setUp();
-        zyclone = new ETHZyclone(depositVerifier, withdrawVerifier, 1e18, 20);
+        zyclone = new ETHZyclone(depositVerifier, withdrawVerifier, 1 ether, 20);
     }
 }

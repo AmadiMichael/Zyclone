@@ -1,7 +1,3 @@
-const { poseidonContract } = require("circomlibjs");
+const { poseidon } = require('./lib/getPoseidonBytecode')
 
-async function poseidon(nInputs) {
-  console.log(poseidonContract.createCode(nInputs));
-}
-
-poseidon(parseInt(process.argv[2]));
+console.log(poseidon(parseInt(process.argv[2])));
